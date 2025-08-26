@@ -7,13 +7,11 @@ sidebar:
   nav: "sidebar"
 ---
 
-Hi, I’m **Julia Clepf** 👩‍💻  
-Cybersecurity student with a background in web development, passionate about ethical hacking.
+Hi, I’m a Cybersecurity student with a background in web development, passionate about ethical hacking. 👩‍💻
 
 - Focus: Networking, SOC, OffSec labs, IR
 - Tools: pfSense, Proxmox, Kali, Wireshark
 - Certifications: Network+, Security+
 - Certifications (in progress): eJPT, PNPT, OSCP
 
-Want to collaborate? DM me on LinkedIn or GitHub.
-https://www.linkedin.com/in/juliaclepf/
+Want to collaborate? DM me on [LinkedIn](https://linkedin.com/in/juliaclepf) or [GitHub](https://github.com/Julmgc).

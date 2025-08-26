@@ -1,4 +1,4 @@
-title: "Julia Clepf Cybersecurity Blog"
+title: ""
 description: "Cybersecurity Projects, Labs, and Studies"
 url: "https://julmgc.github.io"
 baseurl: ""
@@ -25,7 +25,7 @@ collections:
     permalink: /:path/
 
 paginate: 5
-paginate_path: /assets/images/lock.png
+paginate_path: /assets/_images/lock.jpg
 
 defaults:
   - scope:
@@ -43,7 +43,7 @@ defaults:
 
 author:
   name: "Julia Clepf"
-  avatar: "/assets/images/avatar.jpeg"
+  avatar: "/assets/_images/avatar.jpeg"
   bio: "Cybersecurity student with a background in web development, passionate about ethical hacking 🕵️‍♀️"
   links:
     - label: "GitHub"
