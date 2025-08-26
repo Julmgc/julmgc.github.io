@@ -19,6 +19,11 @@ plugins:
   - jekyll-paginate
   - jekyll-include-cache
 
+collections:
+  pages:
+    output: true
+    permalink: /:path/
+
 paginate: 5
 paginate_path: /assets/images/lock.png
 

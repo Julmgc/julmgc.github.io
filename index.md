@@ -32,6 +32,12 @@ feature_row:
     url: "/studies/"
     btn_label: "Open"
     btn_class: "btn--primary"
+
+actions:
+  - label: "See Projects"
+    url: /projects/
+  - label: "About Me"
+    url: /about/
 ---
 
 {% include feature_row id="intro" type="center" %}
