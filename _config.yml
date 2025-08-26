@@ -1,26 +1,24 @@
 title: "Julia Clepf Cybersecurity Blog"
 description: "Cybersecurity Projects, Labs, and Studies"
 url: "https://julmgc.github.io"
-baseurl: "" # keep empty for user site
+baseurl: ""
 
-theme: minimal-mistakes-jekyll
+remote_theme: "mmistakes/minimal-mistakes@4.24.0"
 
-# Enable goodies
+minimal_mistakes_skin: "dark"
+search: true
+breadcrumbs: true
+
 plugins:
   - jekyll-feed
   - jekyll-sitemap
   - jekyll-archives
   - jekyll-paginate
+  - jekyll-include-cache
 
 paginate: 5
 paginate_path: /page:num/
 
-# UI options
-minimal_mistakes_skin: "dark" # optional: "default", "air", "contrast", etc.
-search: true
-breadcrumbs: true
-
-# Defaults so posts render with sidebar, toc, author box
 defaults:
   - scope:
       path: ""
@@ -33,7 +31,7 @@ defaults:
       toc: true
       toc_sticky: true
       sidebar:
-        nav: "sidebar" # ← uses the sidebar menu defined in _data/navigation.yml
+        nav: "sidebar"
 
 author:
   name: "Julia Clepf"
