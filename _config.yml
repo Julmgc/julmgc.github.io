@@ -1,3 +1,47 @@
-theme: jekyll-theme-hacker
 title: "Julia Clepf Cybersecurity Blog"
-description: "Exploring projects, labs, and adventures in cybersecurity."
+description: "Cybersecurity Projects, Labs, and Studies"
+url: "https://julmgc.github.io"
+baseurl: "" # keep empty for user site
+
+theme: minimal-mistakes-jekyll
+
+# Enable goodies
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+  - jekyll-archives
+  - jekyll-paginate
+
+paginate: 5
+paginate_path: /page:num/
+
+# UI options
+minimal_mistakes_skin: "dark" # optional: "default", "air", "contrast", etc.
+search: true
+breadcrumbs: true
+
+# Defaults so posts render with sidebar, toc, author box
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: single
+      author_profile: true
+      read_time: true
+      show_date: true
+      toc: true
+      toc_sticky: true
+      sidebar:
+        nav: "sidebar" # ← uses the sidebar menu defined in _data/navigation.yml
+
+author:
+  name: "Julia Clepf"
+  bio: "Cybersecurity student with a background in web development, passionate about ethical hacking 🕵️‍♀️"
+  links:
+    - label: "GitHub"
+      icon: "fab fa-github"
+      url: "https://github.com/Julmgc"
+    - label: "LinkedIn"
+      icon: "fab fa-linkedin"
+      url: "https://linkedin.com/in/your-link"
