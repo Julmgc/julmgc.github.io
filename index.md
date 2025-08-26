@@ -2,7 +2,7 @@
 layout: splash
 permalink: /
 title: "Julia Clepf Cybersecurity Blog"
-excerpt: "Projects, Labs, and Studies in security — hands-on, clear, and growing weekly."
+excerpt: "Projects, Labs, and Studies in cybersecurity — hands-on, clear, and growing weekly."
 header:
   overlay_color: "#000"
   overlay_filter: "0.4"

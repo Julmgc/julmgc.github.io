@@ -37,7 +37,7 @@ defaults:
         nav: "sidebar"
 
 author:
-  name: ""
+  name: "Julia Clepf"
   avatar: "/assets/images/avatar.jpeg"
   bio: "Cybersecurity student with a background in web development, passionate about ethical hacking 🕵️‍♀️"
   links:
