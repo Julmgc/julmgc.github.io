@@ -1,16 +1,38 @@
 ---
-layout: home
-author_profile: true
-sidebar:
-  nav: "sidebar"
+layout: splash
+permalink: /
+title: "Julia Clepf Cybersecurity Blog"
+excerpt: "Projects, Labs, and Studies in security — hands-on, clear, and growing weekly."
+header:
+  overlay_color: "#000"
+  overlay_filter: "0.4"
+  overlay_image: /assets/images/hero-banner.jpg
+  actions:
+    - label: "See Projects"
+      url: /projects/
+    - label: "About Me"
+      url: /about/
+intro:
+  - excerpt: >
+      Welcome! I break things (safely), fix them (usually), and document the path.
+      Below: quick access to my **Projects**, **Labs**, and **Studies**.
+feature_row:
+  - image_path: /assets/images/projects-card.jpg
+    title: "Projects"
+    url: "/projects/"
+    btn_label: "Open"
+    btn_class: "btn--primary"
+  - image_path: /assets/images/labs-card.jpg
+    title: "Labs"
+    url: "/labs/"
+    btn_label: "Open"
+    btn_class: "btn--primary"
+  - image_path: /assets/images/studies-card.jpg
+    title: "Studies"
+    url: "/studies/"
+    btn_label: "Open"
+    btn_class: "btn--primary"
 ---
 
-Welcome to my **Cybersecurity Blog** 🚀
-
-Here I share:
-
-- 🔐 **Projects** – complete write-ups of security labs and tools I build
-- 🧪 **Labs** – hands-on experiments (pfSense, Proxmox, VLANs, Wireshark, etc.)
-- 📚 **Studies** – notes on malware, network protocols, and anything I’m researching
-
-Check the sidebar or the menu above to explore!
+{% include feature_row id="intro" type="center" %}
+{% include feature_row %}

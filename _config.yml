@@ -3,9 +3,12 @@ description: "Cybersecurity Projects, Labs, and Studies"
 url: "https://julmgc.github.io"
 baseurl: ""
 
+sass:
+  sass_dir: assets/css
+
 remote_theme: "mmistakes/minimal-mistakes@4.24.0"
 
-minimal_mistakes_skin: "dark"
+minimal_mistakes_skin: "contrast"
 search: true
 breadcrumbs: true
 
@@ -17,7 +20,7 @@ plugins:
   - jekyll-include-cache
 
 paginate: 5
-paginate_path: /page:num/
+paginate_path: /assets/images/lock.png
 
 defaults:
   - scope:
@@ -34,7 +37,8 @@ defaults:
         nav: "sidebar"
 
 author:
-  name: "Julia Clepf"
+  name: ""
+  avatar: "/assets/images/avatar.jpeg"
   bio: "Cybersecurity student with a background in web development, passionate about ethical hacking 🕵️‍♀️"
   links:
     - label: "GitHub"
