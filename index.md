@@ -18,19 +18,19 @@ intro:
       Below: quick access to my **Projects**, **Labs**, and **Studies**.
 feature_row:
   - image_path: /assets/images/projects-card.jpg
-    image_height: "250px"
+    image_height: "150px"
     title: "Projects"
     url: "/projects/"
     btn_label: "Open"
     btn_class: "btn--primary"
   - image_path: /assets/images/labs-card.jpg
-    image_height: "250px"
+    image_height: "150px"
     title: "Labs"
     url: "/labs/"
     btn_label: "Open"
     btn_class: "btn--primary"
   - image_path: /assets/images/studies-card.jpg
-    image_height: "250px"
+    image_height: "150px"
     title: "Studies"
     url: "/studies/"
     btn_label: "Open"
