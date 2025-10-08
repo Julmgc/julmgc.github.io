@@ -2,3 +2,8 @@
 .masthead__menu .site-title {
   display: none;
 }
+
+/* Hide the extra site title on the sidebar */
+.sidebar .site-title {
+  display: none;
+}
