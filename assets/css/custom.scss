@@ -7,3 +7,11 @@
 .sidebar .site-title {
   display: none;
 }
+
+/* Make all feature-row images the same height and crop evenly */
+.feature__item img {
+  width: 100%;
+  height: 230px; /* adjust until you like the layout */
+  object-fit: cover; /* this is key — crops edges while keeping proportions */
+  border-radius: 12px; /* optional: gives a nice modern rounded look */
+}
