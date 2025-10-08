@@ -21,5 +21,5 @@ The goal: document my journey into cybersecurity, show my technical growth, and 
 ├── index.md           # Homepage
 ├── _posts/            # Blog posts
 ├── _pages/            # Static pages (About, Projects, Labs, Studies)
-└── assets/_images/     # Screenshots, diagrams, etc
+└── assets/images/     # Screenshots, diagrams, etc
 ```

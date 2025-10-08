@@ -43,7 +43,7 @@ defaults:
 
 author:
   name: "Julia Clepf"
-  avatar: "/assets/_images/avatar.jpeg"
+  avatar: "/assets/images/avatar.jpeg"
   bio: "Cybersecurity student with a background in web development, passionate about ethical hacking 🕵️‍♀️"
   links:
     - label: "GitHub"

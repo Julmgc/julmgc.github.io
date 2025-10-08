@@ -2,7 +2,7 @@
 title: "pfSense + Proxmox Lab: VLANs & Traffic Analysis"
 date: 2025-08-25
 categories: [Labs] # ← shows up under /labs/
-image_path: /assets/_images/lock.jpg
+image_path: /assets/images/lock.jpg
 tags: [pfSense, Proxmox, VLANs, Wireshark]
 sidebar:
   nav: "sidebar"
