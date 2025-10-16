@@ -61,6 +61,7 @@ Open two separate terminal windows in Kali.
 
 ```bash
 arpspoof -i eth0 -t WINDOWS10_VICTIM_IP UBUNTU_SERVER_IP
+```
 
 -i eth0: Your Kali's network interface (use ip a to find it, it might be ens18 or similar).
 
@@ -76,26 +77,22 @@ At this point, the MITM is active. Traffic from Windows to Ubuntu, and vice vers
 
 This screenshot of the UBUNTU_SERVER ARP table cache proves the poisoning: the IP address that should map the WINDOWS10_VICTIM's IP address is instead associated with the KALI_ATTACKER MAC address.
 
-
 ![Baseline B — ARP UBUNTU](/assets/images/BASE_B_UBUNTU_ARP.png)
 
 The WINDOWS10_VICTIM ARP table demonstrates the same poisoning observed on the server: both the server's and attacker's IPs are associated with the KALI_ATTACKER MAC address in the victim's ARP cache. This confirms that WINDOWS10_VICTIM has been tricked into sending frames for the server to the attacker. When combined with the server-side ARP evidence, these symmetric ARP cache entries prove that the attacker sits in the middle for both directions of the conversation.
-
 
 ![Baseline B — ARP WINDOWS](/assets/images/BASE_B_ARP_WINDOWS.png)
 
 Now we can observe the victim’s HTTP GET and the server’s HTTP/200 response being forwarded with tcpdump on the KALI_ATTACKER VM.
 
-
 ![Baseline B — TCPDUMP KALI](/assets/images/BASE_B_KALI_ATTACKER_TCP_DUMP_ARP_SPOOFING.png)
-
 
 These packets demonstrate that the attacker is transparently relaying traffic between the victim and server. Captured by the attacker, tcpdump displays the victim’s HTTP GET requests and the server’s HTTP 200 responses. Note that the IP headers show src=WINDOWS10_VICTIM and dst=UBUNTU_SERVER, but the Ethernet frames are received by the attacker. This confirms that traffic is being intercepted and relayed (MITM) while preserving the original IP/TCP endpoints.
 
 The Wireshark capture on KALI_ATTACKER also shows an ICMP redirect (or related control message) captured on the attacker. ICMP redirect messages indicate routing/forwarding changes and, in this context, demonstrate additional network-layer side effects of the poisoning — e.g., hosts receiving route notices or the attacker's role in modifying traffic paths. Use this capture to explain how the network perceives the changed link-layer topology.
 
-
 ![Baseline B — WIRESHARK WINDOWS](/assets/images/BASE_B_WIN10_WIRESHARK_ARP.png)
 
----
+```
+
 ```
