@@ -1,0 +1,109 @@
+/* === BIG, READABLE TYPOGRAPHY === */
+:root {
+  --body-size: clamp(19px, 1.2vw + 14px, 22px);
+  --h1-size: clamp(40px, 3.2vw + 18px, 60px);
+  --h2-size: clamp(30px, 2vw + 14px, 42px);
+  --h3-size: clamp(24px, 1.4vw + 12px, 30px);
+}
+
+/* Title at top of post page */
+.layout--single .page__title {
+  font-size: var(--h1-size);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+/* Body text inside post */
+.layout--single .page__content {
+  font-size: var(--body-size);
+  line-height: 1.8;
+}
+
+/* Markdown headings in content */
+.layout--single .page__content h2 {
+  font-size: var(--h2-size);
+  line-height: 1.15;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+}
+.layout--single .page__content h3 {
+  font-size: var(--h3-size);
+  line-height: 1.2;
+  margin-top: 1.4em;
+  margin-bottom: 0.5em;
+}
+
+/* OPSEC list — match screenshot */
+.page__content .opsec-list {
+  list-style: none;
+  margin: 0.5rem 0 1.25rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(230px, max-content) 18px 1fr; /* label | arrow | desc */
+  row-gap: 10px;
+  column-gap: 12px;
+  align-items: center;
+}
+
+.page__content .opsec-list li {
+  display: contents; /* children occupy the grid cells */
+}
+
+/* LABEL: uppercase + bold exactly like your image */
+.page__content .opsec-list .label {
+  grid-column: 1;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  white-space: nowrap; /* keeps on one line like the mock */
+}
+
+/* ARROW: always visible, tight spacing */
+.page__content .opsec-list .arrow {
+  grid-column: 2;
+  color: #000; /* match body text color */
+  display: inline-block;
+}
+
+/* DESCRIPTION */
+.page__content .opsec-list .desc {
+  grid-column: 3;
+  line-height: 1.55;
+}
+
+/* Mobile: stack neatly, hide arrow to avoid wrap */
+@media (max-width: 560px) {
+  .page__content .opsec-list {
+    grid-template-columns: 1fr;
+    row-gap: 8px;
+  }
+  .page__content .opsec-list .arrow {
+    display: none;
+  }
+  .page__content .opsec-list .desc {
+    grid-column: 1;
+  }
+}
+
+/* Justify body copy in posts/pages */
+.page__content p,
+.page__content li {
+  text-align: justify; /* main switch */
+  text-justify: inter-word; /* nicer spacing on some browsers */
+}
+
+/* Better line breaks for long words */
+html {
+  hyphens: auto;
+} /* uses the page lang for hyphen rules */
+
+/* Don’t justify things that look bad justified */
+.page__content pre,
+.page__content code,
+.page__content .highlight,
+.page__content .notice,
+.page__content .toc,
+.page__content table,
+.page__content figcaption {
+  text-align: left !important;
+}

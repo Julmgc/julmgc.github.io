@@ -1,0 +1,166 @@
+<!-- Loads your compiled theme + custom styles -->
+<link
+  rel="stylesheet"
+  href="{{ '/assets/css/main.css' | relative_url }}?v={{ site.time | date: '%s' }}"
+/>
+
+<!-- Lightweight image lightbox (no dependencies) -->
+<style>
+  /* Overlay */
+  .mm-lightbox {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.8);
+  }
+  /* Centering wrapper */
+  .mm-lightbox__inner {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+  }
+  /* Image */
+  .mm-lightbox__img {
+    max-width: 96vw;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  /* Close button (top-right) */
+  .mm-lightbox__close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 28px;
+    line-height: 1;
+    color: #fff;
+    cursor: pointer;
+    user-select: none;
+    background: rgba(0, 0, 0, 0.35);
+    border: 0;
+    border-radius: 6px;
+    padding: 6px 10px;
+  }
+  /* Optional caption (uses alt text) */
+  .mm-lightbox__cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 10px;
+    color: #fff;
+    text-align: center;
+    opacity: 0.9;
+    font-size: 14px;
+    padding: 0.25rem 0.75rem;
+  }
+
+  /* Cue that images are zoomable */
+  .page__content img.lightbox {
+    cursor: zoom-in;
+  }
+</style>
+
+<script>
+  (function () {
+    // Build the overlay once
+    const overlay = document.createElement("div");
+    overlay.className = "mm-lightbox";
+    overlay.innerHTML = `
+    <div class="mm-lightbox__inner" role="dialog" aria-modal="true">
+      <img class="mm-lightbox__img" alt="">
+      <div class="mm-lightbox__cap" hidden></div>
+      <button class="mm-lightbox__close" aria-label="Close">&times;</button>
+    </div>
+  `;
+
+    function getImageSrc(img) {
+      return (
+        img.currentSrc ||
+        img.getAttribute("src") ||
+        img.getAttribute("data-src")
+      );
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.body.appendChild(overlay);
+
+      // Auto-enable lightbox on all post images (opt-out with .no-lightbox)
+      document
+        .querySelectorAll(".page__content img:not(.no-lightbox)")
+        .forEach((img) => img.classList.add("lightbox"));
+
+      const imgEl = overlay.querySelector(".mm-lightbox__img");
+      const capEl = overlay.querySelector(".mm-lightbox__cap");
+      const closeEl = overlay.querySelector(".mm-lightbox__close");
+
+      function openLightbox(src, alt) {
+        imgEl.src = src;
+        imgEl.alt = alt || "";
+        if (alt) {
+          capEl.textContent = alt;
+          capEl.hidden = false;
+        } else {
+          capEl.hidden = true;
+        }
+        overlay.style.display = "block";
+        overlay.classList.add("is-open");
+        document.documentElement.style.overflow = "hidden";
+        closeEl.focus();
+      }
+
+      function closeLightbox() {
+        overlay.classList.remove("is-open");
+        overlay.style.display = "none";
+        document.documentElement.style.overflow = "";
+        imgEl.src = "";
+        imgEl.alt = "";
+      }
+
+      // Close interactions
+      closeEl.addEventListener("click", closeLightbox);
+      overlay.addEventListener("click", (e) => {
+        // Click outside the image closes
+        if (
+          e.target === overlay ||
+          e.target.classList.contains("mm-lightbox__inner")
+        )
+          closeLightbox();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay.classList.contains("is-open"))
+          closeLightbox();
+      });
+
+      // Open on click (image or link wrapping image)
+      document.body.addEventListener(
+        "click",
+        function (e) {
+          // Direct image click
+          let img = e.target.closest("img.lightbox");
+
+          // If not on an img, check if a link wrapping an img.lightbox was clicked
+          if (!img) {
+            const link = e.target.closest("a");
+            if (link) {
+              const nestedImg = link.querySelector("img.lightbox");
+              if (nestedImg) {
+                e.preventDefault(); // don't navigate
+                openLightbox(getImageSrc(nestedImg), nestedImg.alt || "");
+                return;
+              }
+            }
+          }
+
+          if (img) {
+            if (img.closest("a")) e.preventDefault(); // stop navigation if image is inside link
+            openLightbox(getImageSrc(img), img.alt || "");
+          }
+        },
+        false
+      );
+    });
+  })();
+</script>

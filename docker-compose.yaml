@@ -1,0 +1,22 @@
+services:
+  jekyll:
+    image: jekyll/jekyll:4
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /srv/jekyll
+    command: bash -lc "bundle config set path vendor/bundle && bundle install && jekyll serve --livereload --host 0.0.0.0 --force_polling"
+    ports:
+      - "4000:4000"
+      - "35729:35729"
+    environment:
+      JEKYLL_ENV: development
+      PAGES_REPO_NWO: juliaclepf/juliaclepf.github.io # (optional)
+    volumes:
+      - ./:/srv/jekyll # bind mount your source
+      - site:/srv/jekyll/_site # named volume for output
+      - bundle_cache:/srv/jekyll/vendor/bundle # named volume for gems
+    tty: true
+    stdin_open: true
+
+volumes:
+  site:
+  bundle_cache:

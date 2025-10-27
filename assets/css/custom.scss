@@ -14,3 +14,21 @@
   object-fit: cover;
   border-radius: 12px;
 }
+
+/* Force a first-line "tab" only when you add .indent */
+.layout--single .page__content p.indent {
+  text-indent: 1.75rem !important; /* increase/decrease to taste */
+}
+
+/* If you wrap in .justify-text, make sure .indent still wins */
+.layout--single .page__content .justify-text p.indent {
+  text-indent: 1.75rem !important;
+}
+
+/* Safety: never indent code/list paragraphs */
+.layout--single .page__content li p.indent,
+.layout--single .page__content pre,
+.layout--single .page__content .highlight,
+.layout--single .page__content code {
+  text-indent: 0 !important;
+}

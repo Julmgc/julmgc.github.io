@@ -4,7 +4,7 @@ url: "https://julmgc.github.io"
 baseurl: ""
 
 sass:
-  sass_dir: assets/css
+  sass_dir: _sass
 
 remote_theme: "mmistakes/minimal-mistakes@4.24.0"
 
@@ -24,8 +24,8 @@ collections:
     output: true
     permalink: /:path/
 
-paginate: 5
-paginate_path: /assets/_images/lock.jpg
+# paginate: 5
+# paginate_path: /assets/_images/lock.jpg
 
 defaults:
   - scope:
@@ -33,9 +33,10 @@ defaults:
       type: posts
     values:
       layout: single
+      permalink: /:categories/:title/
       author_profile: true
       read_time: true
-      show_date: true
+      show_date: false
       toc: true
       toc_sticky: true
       sidebar:
