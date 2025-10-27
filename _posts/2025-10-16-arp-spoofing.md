@@ -97,3 +97,36 @@ arpspoof -i eth0 -t <strong>UBUNTU_SERVER_IP</strong> <strong>WINDOWS10_VICTIM_I
 <p class="indent" style="text-indent: 2rem;">The Wireshark capture on <strong>KALI_ATTACKER</strong> also shows an ICMP redirect (or related control message) captured on the attacker. ICMP redirect messages indicate routing/forwarding changes and, in this context, demonstrate additional network-layer side effects of the poisoning — e.g., hosts receiving route notices or the attacker's role in modifying traffic paths. Use this capture to explain how the network perceives the changed link-layer topology.</p>
 
 ![Baseline B — WIRESHARK WINDOWS](/assets/images/BASE_B_WIN10_WIRESHARK_ARP.png)
+
+## 🛡️ How to Prevent ARP Spoofing
+
+### 🔍 Detecting ARP Spoofing
+
+- Enable **DHCP snooping** on switches.
+- Use **ARP monitoring tools** such as _Arpwatch_ or _ARPScan_.
+- Configure **static ARP entries** for critical systems.
+
+---
+
+### Defense Strategies
+
+ARP spoofing can be mitigated using a combination of host-level, switch-level, and network-layer protections:
+
+- **Static ARP Entries** — Pin IP→MAC mappings for critical hosts (such as gateways and important servers) to prevent unauthorized changes.
+
+- **Host Hardening (Linux)** — Use tools like **ArpON** or kernel-level filtering with **arptables** to validate and block suspicious ARP activity.
+
+- **Windows Protection** — On Windows endpoints, tools like **XArp** can detect, block, and alert on spoofing attempts.
+
+- **Network Monitoring** — Run an ARP monitoring or notification service (for example, _Arpwatch_ or _Arpalert_) to detect unexpected IP↔MAC mapping changes.
+
+- **Switch-Level Security** — Enable **Dynamic ARP Inspection (DAI)** together with **DHCP snooping** and **port security** on managed switches to automatically drop forged ARP frames at Layer 2.
+
+- **Network IDS/IPS** — Deploy intrusion detection or prevention systems such as **Snort** or **Suricata** to identify abnormal ARP traffic patterns and forward alerts to your **SIEM** or logging system.
+
+- **Encryption & VPNs** — Use **VPNs** and **end-to-end encryption (TLS/HTTPS)** on untrusted networks.
+  > While these do not stop ARP spoofing itself, they protect data confidentiality and integrity — making it much harder for an attacker to harvest useful information even if they intercept traffic.
+
+---
+
+✅ **Pro tip:** Layer your defenses. Combine switch-level protections with endpoint monitoring and encryption for maximum resilience against ARP-based man-in-the-middle attacks.
