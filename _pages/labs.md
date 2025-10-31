@@ -1,4 +1,9 @@
 ---
+# ...existing front matter...
+redirect_from:
+  - /projects/
+  - /studies/
+
 title: "Labs"
 permalink: /labs/
 layout: single

@@ -2,12 +2,12 @@
 main:
   - title: "Home"
     url: /
-  - title: "Projects"
-    url: /projects/
+  # - title: "Projects"
+  #   url: /projects/
   - title: "Labs"
     url: /labs/
-  - title: "Studies"
-    url: /studies/
+  # - title: "Studies"
+  #   url: /studies/
   - title: "About"
     url: /about/
 
@@ -15,12 +15,12 @@ main:
 sidebar:
   - title: "Browse"
     children:
-      - title: "All Projects"
-        url: /projects/
+      # - title: "All Projects"
+      #   url: /projects/
       - title: "All Labs"
         url: /labs/
-      - title: "All Studies"
-        url: /studies/
+      # - title: "All Studies"
+      #   url: /studies/
       - title: "Tags"
         url: /tags/
       - title: "Categories"
