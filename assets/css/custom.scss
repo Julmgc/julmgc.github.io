@@ -32,3 +32,60 @@
 .layout--single .page__content code {
   text-indent: 0 !important;
 }
+
+.lab-list {
+  list-style: none;
+  margin: 2em 0;
+  padding: 0;
+}
+
+.lab-item {
+  margin-bottom: 1.8em;
+  padding-left: 1em;
+  border-left: 3px solid #0056b3; // your ClepfSec blue
+}
+
+.lab-title {
+  margin: 0;
+  font-size: 1.15rem; // smaller for elegant hierarchy
+  font-weight: 600;
+  display: inline-block;
+  color: #222;
+}
+
+.lab-link {
+  color: #0056b3;
+  text-decoration: none;
+  transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.lab-link:hover {
+  color: #003d80;
+  text-shadow: 0 0 2px rgba(0, 85, 170, 0.25);
+}
+
+.lab-date {
+  color: #666;
+  font-size: 0.9rem;
+  margin-left: 0.5em;
+  font-weight: 400;
+}
+
+.lab-excerpt {
+  margin: 0.4em 0 0;
+  color: #444;
+  font-size: 0.97rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.lab-item + .lab-item {
+  border-top: none; // ensure no horizontal lines between posts
+}
+
+.page__hero[style*="arp-spoofing-header.jpg"],
+.page__hero[style*="arp-spoofing-header.jpg"] h1,
+.page__hero[style*="arp-spoofing-header.jpg"] p {
+  color: #000 !important;
+  text-shadow: none !important;
+}

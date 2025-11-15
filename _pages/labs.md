@@ -15,8 +15,14 @@ sidebar:
 
 Hands-on **labs** (pfSense, Proxmox, VLANs, Wireshark, AD, etc).
 
-{% assign lab_posts = site.posts | where_exp: "p", "p.categories contains 'Labs'" %}
-{% for post in lab_posts %}
-
-- [{{ post.title }}]({{ post.url | relative_url }}) — {{ post.date | date: "%b %d, %Y" }}
+<div class="lab-list">
+  {% for post in site.categories.Labs %}
+    <article class="lab-item">
+      <h3 class="lab-title">
+        <a href="{{ post.url | relative_url }}" class="lab-link">{{ post.title }}</a>
+        <span class="lab-date">— {{ post.date | date: "%b %-d, %Y" }}</span>
+      </h3>
+      <p class="lab-excerpt"><em>{{ post.excerpt | markdownify | strip_html | truncate: 180 }}</em></p>
+    </article>
   {% endfor %}
+</div>

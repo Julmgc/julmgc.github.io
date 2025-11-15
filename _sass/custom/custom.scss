@@ -184,3 +184,9 @@ html {
   align-items: center;
   gap: 1.2rem;
 }
+
+/* Optional: lighten code block background slightly for readability */
+.highlight {
+  background-color: #f9fafb;
+  border-left: 3px solid #7dd3fc;
+}

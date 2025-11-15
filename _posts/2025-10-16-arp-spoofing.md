@@ -1,12 +1,19 @@
 ---
 title: "ARP SPOOFING"
 date: 2025-10-16
+layout: single
 categories: [Labs]
 tags: [ARP, Spoofing, MITM, Wireshark]
-#layout: post
 excerpt: "Demonstration of ARP spoofing (MITM): baseline, attack and mitigations."
+permalink: /labs/arp-spoofing/
 header:
-  teaser: /assets/images/arp-spoofing-header.jpg
+  teaser: /assets/images/arp-spoofing/arp-spoofing-header.jpg
+  image: /assets/images/arp-spoofing/arp-spoofing-header.jpg
+  overlay_filter: 0.3
+  overlay_image: /assets/images/arp-spoofing/arp-spoofing-header.jpg
+  image_description: "Network cables connected to switches"
+  image_height: 300px
+author_profile: true
 ---
 
 <em>
@@ -15,7 +22,9 @@ header:
 ## What is ARP Spoofing?
 
 <div class="justify-text">
-<p class="indent" style="text-indent: 2rem;">ARP (Address Resolution Protocol) is a network protocol that maps MAC addresses (unique computer or device identifiers) to IP addresses. Networks maintain an ARP table — a database that connects MAC addresses to IP addresses. ARP spoofing happens when an attacker sends forged ARP replies, causing devices to store incorrect IP-to-MAC mappings in their ARP tables. ARP Spoofing is used for man-in-the-middle attacks, which is used to intercept, read and or modify traffic between devices; session hijacking; denial of service; combined with DNS poisoning to redirect traffic to fake sites; sniffing credentials and data.</p>
+<p class="indent" style="text-indent: 2rem;">ARP (Address Resolution Protocol) is a network protocol that maps MAC addresses (unique computer or device identifiers) to IP addresses. Networks maintain an ARP table — a database that connects MAC addresses to IP addresses. </p>
+
+<p class="indent" style="text-indent: 2rem;">ARP spoofing happens when an attacker sends forged ARP replies, causing devices to store incorrect IP-to-MAC mappings in their ARP tables. ARP spoofing is commonly used for man-in-the-middle attacks to intercept, read, and/or modify traffic between devices; for session hijacking; for denial-of-service; in combination with DNS poisoning to redirect traffic to fake sites; and to sniff credentials and data.</p>
 
 <p class="indent" style="text-indent: 2rem;">This project demonstrates ARP Spoofing, and talks about how to prevent it. I start by showing normal communication within systems on the same LAN (Baseline A), with packet captures. Then I demonstrate ARP Spoofing (Baseline B) and DNS Poisoning (Baseline C). Finally, I present mitigation techniques to prevent these exploits from happening.</p>
 
@@ -39,11 +48,11 @@ header:
 
 dns.qry.name == "ubuntu.lab"
 
-![Baseline A - WIRESHARK screenshot](/assets/images/BASE_A_WIRESHARK_DNS.png)
+![Baseline A - WIRESHARK screenshot](/assets/images/arp-spoofing/BASE_A_WIRESHARK_DNS.png)
 
 <p class="indent" style="text-indent: 2rem;">When <strong>WINDOWS10_VICTIM</strong> runs `nslookup ubuntu.lab`, the DNS query is handled by <strong>DNS_SERVER</strong>, which replies with the legitimate <strong>UBUNTU_SERVER</strong> IP address.</p>
 
-![Baseline A — nslookup ubuntu.lab](/assets/images/BASE_A_WINDOWS_NSLOOKUP.png)
+![Baseline A — nslookup ubuntu.lab](/assets/images/arp-spoofing/BASE_A_WINDOWS_NSLOOKUP.png)
 
 ---
 
@@ -51,18 +60,16 @@ dns.qry.name == "ubuntu.lab"
 
 **What is the actual damage an attacker can do once inside a network with ARP spoofing?**
 
-![Baseline B — MITM topology](/assets/images/FINAL_BASE_B_SYSTEMS.png)
+![Baseline B — MITM topology](/assets/images/arp-spoofing/FINAL_BASE_B_SYSTEMS.png)
 ARP spoofing (MITM): **KALI_ATTACKER** poisons both endpoints’ ARP caches so traffic between **WINDOWS10_VICTIM** and **UBUNTU_SERVER** flows through the attacker.
 
 <p class="indent" style="text-indent: 2rem;">All virtual machines are connected on the same virtual network bridge within Proxmox. During this phase, ARP spoofing was performed so that both <strong>WINDOWS10_VICTIM</strong> and <strong>UBUNTU_SERVER</strong> resolved each other’s MAC address to the <strong>KALI_ATTACKER</strong> interface. As a result, all network traffic between the two legitimate hosts was transparently relayed through <strong>KALI_ATTACKER</strong>, creating a MITM (Man-in-the-Middle) scenario.</p>
 
-<p class="indent" style="text-indent: 2rem;">In this baseline demonstration ARP spoofing was performed, this chain of evidence proves a successful Man-in-the-Middle. First, <strong>KALI_ATTACKER</strong> poisons the <strong>WINDOWS10_VICTIM</strong> arp table and the <strong>UBUNTU_SERVER</strong> arp table using `arpspoof`. Then, the ARP table on <strong>UBUNTU_SERVER</strong> and the <strong>WINDOWS10_VICTIM</strong> confirms the poisoning, mapping peer IPs to the attacker's MAC. Next, the attacker’s `tcpdump` capture shows the victim’s HTTP GET request and the server’s HTTP/200 response being relayed through the attacker. Finally, a Wireshark capture reveals an ICMP Redirect message observed during the attack, illustrating how the network responds to the altered topology.</p>
-
-<p class="indent" style="text-indent: 2rem;">Execute arpspoof on <strong>KALI_ATTACKER</strong>, poisoning the LAN, we will use the tool `arpspoof` from the `dsniff` package. It's simple and effective.</p>
+<p class="indent" style="text-indent: 2rem;"> To execute ARP spoofing on <strong>KALI_ATTACKER</strong> and poison the LAN, we use the tool <code>arpspoof</code> from the <code>dsniff</code> package. It is simple and effective.</p>
 
 Open two separate terminal windows in Kali.
 
-- **Terminal 1: Poison the Windows VM's ARP table.** Tell Windows that the Ubuntu Server's IPs at Kali's MAC address.
+- **Terminal 1: Poison the Windows VM's ARP table.** Tell Windows that the Ubuntu server’s IP is at Kali’s MAC address.
 
 ```bash
 arpspoof -i eth0 -t WINDOWS10_VICTIM_IP UBUNTU_SERVER_IP
@@ -74,39 +81,35 @@ arpspoof -i eth0 -t WINDOWS10_VICTIM_IP UBUNTU_SERVER_IP
 
 <strong>UBUNTU_SERVER_IP</strong>: The host's IP you want to impersonate to the target (the server).
 
-Terminal 2: Poison the Ubuntu Server's ARP table. Tell the Ubuntu Server that the Windows IP is at Kali's MAC address.
+- **Terminal 2: Poison the Ubuntu Server's ARP table.** Tell the Ubuntu Server that the Windows IP is at Kali's MAC address.
 
-arpspoof -i eth0 -t <strong>UBUNTU_SERVER_IP</strong> <strong>WINDOWS10_VICTIM_IP</strong>
+```bash
+arpspoof -i eth0 -t UBUNTU_SERVER_IP WINDOWS10_VICTIM_IP
+```
 
 <p class="indent" style="text-indent: 2rem;">At this point, the MITM is active. Traffic from Windows to Ubuntu, and vice versa, is now flowing through your Kali machine. You can verify this by looking at the ARP table on the Windows machine (arp -a in cmd) – you should see the Ubuntu Server's IP address mapped to Kali's MAC address.</p>
 
-<p class="indent" style="text-indent: 2rem;">This screenshot of the <strong>UBUNTU_SERVER</strong> ARP table cache proves the poisoning: the IP address that should map the <strong>WINDOWS10_VICTIM's IP address</strong> is instead associated with the <strong>KALI_ATTACKER MAC address</strong>.</p>
+![Baseline B — ARP UBUNTU](/assets/images/arp-spoofing/BASE_B_UBUNTU_ARP_2.png)
 
-![Baseline B — ARP UBUNTU](/assets/images/BASE_B_UBUNTU_ARP_2.png)
+<p class="indent" style="text-indent: 2rem;">The <strong>WINDOWS10_VICTIM_IP</strong> ARP table demonstrates the same poisoning observed on the server: both the server's and attacker's IPs are associated with the <strong>KALI_ATTACKER MAC address</strong> in the victim's ARP cache. This confirms that <strong>WINDOWS10_VICTIM</strong> has been tricked into sending frames for the server to the attacker. </p>
 
-<p class="indent" style="text-indent: 2rem;">The WINDOWS10_VICTIM ARP table demonstrates the same poisoning observed on the server: both the server's and attacker's IPs are associated with the <strong>KALI_ATTACKER MAC address</strong> in the victim's ARP cache. This confirms that <strong>WINDOWS10_VICTIM</strong> has been tricked into sending frames for the server to the attacker. When combined with the server-side ARP evidence, these symmetric ARP cache entries prove that the attacker sits in the middle for both directions of the conversation.</p>
+![Baseline B — ARP WINDOWS](/assets/images/arp-spoofing/BASE_B_ARP_WINDOWS.png)
 
-![Baseline B — ARP WINDOWS](/assets/images/BASE_B_ARP_WINDOWS.png)
+<p class="indent" style="text-indent: 2rem;">Now we can observe the <strong>WINDOWS10_VICTIM’s</strong> HTTP GET and the server’s HTTP/200 response being forwarded with tcpdump on the <strong>KALI_ATTACKER VM.</strong> These packets demonstrate that the attacker is transparently relaying traffic between the victim and server. .</p>
 
-<p class="indent" style="text-indent: 2rem;">Now we can observe the victim’s HTTP GET and the server’s HTTP/200 response being forwarded with tcpdump on the <strong>KALI_ATTACKER VM</strong>.</p>
+<p class="indent" style="text-indent: 2rem;">Note that the IP headers show src=<strong>WINDOWS10_VICTIM</strong> and dst=<strong>UBUNTU_SERVER</strong>, but the Ethernet frames are received by the attacker. This confirms that traffic is being intercepted and relayed (MITM) while preserving the original IP/TCP endpoints.</p>
 
-![Baseline B — TCPDUMP KALI](/assets/images/BASE_B_KALI_ATTACKER_TCP_DUMP_ARP_SPOOFING.png)
+![Baseline B — TCPDUMP KALI](/assets/images/arp-spoofing/BASE_B_KALI_ATTACKER_TCP_DUMP_ARP_SPOOFING.png)
 
-<p class="indent" style="text-indent: 2rem;">These packets demonstrate that the attacker is transparently relaying traffic between the victim and server. Captured by the attacker, tcpdump displays the victim’s HTTP GET requests and the server’s HTTP 200 responses. Note that the IP headers show src=<strong>WINDOWS10_VICTIM</strong> and dst=<strong>UBUNTU_SERVER</strong>, but the Ethernet frames are received by the attacker. This confirms that traffic is being intercepted and relayed (MITM) while preserving the original IP/TCP endpoints.</p>
+<p class="indent" style="text-indent: 2rem;">The Wireshark capture on <strong>KALI_ATTACKER</strong> also shows an ICMP redirect captured on the attacker. ICMP redirect messages indicate routing/forwarding changes. In this context, demonstrate additional network-layer side effects of the poisoning — e.g., hosts receiving route notices or the attacker's role in modifying traffic paths. Use this capture to explain how the network perceives the changed link-layer topology.</p>
 
-<p class="indent" style="text-indent: 2rem;">The Wireshark capture on <strong>KALI_ATTACKER</strong> also shows an ICMP redirect (or related control message) captured on the attacker. ICMP redirect messages indicate routing/forwarding changes and, in this context, demonstrate additional network-layer side effects of the poisoning — e.g., hosts receiving route notices or the attacker's role in modifying traffic paths. Use this capture to explain how the network perceives the changed link-layer topology.</p>
-
-![Baseline B — WIRESHARK WINDOWS](/assets/images/BASE_B_WIN10_WIRESHARK_ARP.png)
+![Baseline B — WIRESHARK WINDOWS](/assets/images/arp-spoofing/BASE_B_WIN10_WIRESHARK_ARP.png)
 
 ## 🛡️ How to Prevent ARP Spoofing
-
-### 🔍 Detecting ARP Spoofing
 
 - Enable **DHCP snooping** on switches.
 - Use **ARP monitoring tools** such as _Arpwatch_ or _ARPScan_.
 - Configure **static ARP entries** for critical systems.
-
----
 
 ### Defense Strategies
 
@@ -128,5 +131,3 @@ ARP spoofing can be mitigated using a combination of host-level, switch-level, a
   > While these do not stop ARP spoofing itself, they protect data confidentiality and integrity — making it much harder for an attacker to harvest useful information even if they intercept traffic.
 
 ---
-
-✅ **Pro tip:** Layer your defenses. Combine switch-level protections with endpoint monitoring and encryption for maximum resilience against ARP-based man-in-the-middle attacks.
