@@ -13,7 +13,7 @@ sidebar:
   nav: "sidebar"
 ---
 
-Hands-on **labs** (pfSense, Proxmox, VLANs, Wireshark, AD, etc).
+<!-- Hands-on **labs** (pfSense, Proxmox, VLANs, Wireshark, AD, etc). -->
 
 <div class="lab-list">
   {% for post in site.categories.Labs %}

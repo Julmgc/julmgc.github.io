@@ -7,7 +7,7 @@ sidebar:
   nav: "sidebar"
 ---
 
-Hi, I’m a Cybersecurity student with a background in web development, passionate about ethical hacking. 👩‍💻
+Hi, I’m a Cybersecurity student with a background in web development. 👩‍💻
 
 - Focus: Networking, SOC, OffSec labs, IR
 - Tools: pfSense, Proxmox, Kali, Wireshark

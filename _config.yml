@@ -45,7 +45,7 @@ defaults:
 author:
   name: "Julia Clepf"
   avatar: "/assets/images/avatar.jpeg"
-  bio: "Cybersecurity student with a background in web development, passionate about ethical hacking 🕵️‍♀️"
+  bio: "Cybersecurity student with a background in web development."
   links:
     - label: "GitHub"
       icon: "fab fa-github"
