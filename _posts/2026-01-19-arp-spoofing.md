@@ -1,6 +1,6 @@
 ---
 title: "ARP SPOOFING"
-date: 2025-10-16
+date: 2026-01-19
 layout: single
 categories: [Labs]
 tags: [ARP, Spoofing, MITM, Wireshark]

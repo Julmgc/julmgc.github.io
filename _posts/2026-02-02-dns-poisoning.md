@@ -1,16 +1,16 @@
 ---
 title: "DNS POISONING"
-date: 2025-11-02
+date: 2026-02-02
 layout: single
 categories: [Labs]
 tags: [DNS, Poisoning, MITM, Wireshark]
 excerpt: "Demonstration of DNS poisoning in a controlled lab environment, including analysis, indicators, and mitigation strategies."
 permalink: /labs/dns-poisoning/
 header:
-  teaser: /assets/images/dns-poisoning/DNS-POST.jpg
-  image: /assets/images/dns-poisoning/DNS-POST.jpg
+  teaser: /assets/images/DOOR-AJAR.jpg
+  image: /assets/images/DOOR-AJAR.jpg
   overlay_filter: 0.3
-  overlay_image: /assets/images/dns-poisoning/DNS-POST.jpg
+  overlay_image: /assets/images/DOOR-AJAR.jpg
   image_description: "A small crack in trust can open the door to deception — DNS poisoning in action."
   image_height: 300px
 author_profile: true
