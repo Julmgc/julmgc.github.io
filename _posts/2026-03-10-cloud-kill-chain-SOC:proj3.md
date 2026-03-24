@@ -1,6 +1,6 @@
 ---
 title: "Cloud Incident Investigation: SSRF Signal → IMDS Risk → CloudTrail Timeline → Hardening"
-date: 2026-03-23
+date: 2026-03-10
 layout: single
 author_profile: true
 toc: true
