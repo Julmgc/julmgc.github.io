@@ -58,7 +58,7 @@ I used a small Windows-focused endpoint monitoring setup for this project:
 - **Sysmon** — process creation telemetry
 - **Wazuh agent** — forwards endpoint events into Wazuh
 
-![Proj-4 - Architecture - windows-endpoint-pipeline](/assets/images/proj-4/ARCH-endpoint-investigation.png)
+![Proj-4 - Architecture - windows-endpoint-pipeline](/assets/images/proj-4/ARCH-endpoint-investigation 1.png)
 
 ## Endpoint telemetry: making Windows process activity reviewable
 

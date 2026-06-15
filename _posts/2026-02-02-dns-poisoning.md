@@ -58,7 +58,7 @@ When a user tries to access a trusted domain, they are silently redirected to th
 - Traffic monitoring or disruption
 - Bypassing geographical or security restrictions
 
-## Indicators of DNS Poisoning
+**Indicators of DNS Poisoning**
 
 - Redirection to unfamiliar or suspicious websites
 - Browser warnings about invalid TLS certificates
@@ -66,7 +66,7 @@ When a user tries to access a trusted domain, they are silently redirected to th
 - Duplicate or delayed DNS responses
 - User reports of altered content
 
-## Prerequisites
+**Prerequisites**
 
 Before starting, prepare the following:
 
@@ -98,7 +98,7 @@ on the Windows 10 victim, the correct IP (the Ubuntu server) was returned — co
 
 We use **Bettercap** on Kali to intercept and spoof DNS replies.
 
-### Step 1 – Start ARP spoofing
+**Step 1 – Start ARP spoofing**
 
 Redirect the traffic between victim and the DNS server through the attacker:
 
@@ -111,7 +111,7 @@ Confirm that the Windows ARP table shows the same MAC for the DNS server and the
 
 ![Baseline B - WINDOWS10_VICTIM_ARP_TABLE screenshot](/assets/images/dns-poisoning/ARP_TABLE_WINDOWS10_ARP_SPOOF_BASE_B.png)
 
-### Step 2 – Launch DNS spoofing
+**Step 2 – Launch DNS spoofing**
 
 ```bash
 sudo bettercap -iface eth0 -eval "
@@ -126,7 +126,7 @@ events.stream on;"
 You can add "set arp.spoof.targets WINDOWS10_VICTIM,DNS_SERVER;
 set arp.spoof.fullduplex true;" to your bettercap script. In my lab this did not work reliably, which is why I performed ARP spoofing separately with arpspoof. Now, when the victim queries `portal.company.local`, the DNS reply comes **from the attacker**, not the legitimate DNS server.
 
-### Step 3 – Block legitimate DNS responses (iptables)
+**Step 3 – Block legitimate DNS responses (iptables)**
 
 To ensure the victim only sees the attacker's replies, block the DNS server’s responses, from KALI_ATTACKER machine type:
 
@@ -139,7 +139,7 @@ This prevents the Raspberry Pi’s DNS replies from reaching the victim and forc
 
 ---
 
-### ✅ Result
+**✅ Result**
 
 On the WINDOWS10_VICTIM, `nslookup portal.company.local` returns:
 
@@ -149,11 +149,11 @@ The legitimate Ubuntu server IP no longer appears — the attack succeeded. The 
 
 ## Evidence images
 
-### Wireshark capture of poisoned DNS responses redirecting the victim to the attacker’s IP.
+**Wireshark capture of poisoned DNS responses redirecting the victim to the attacker’s IP.**
 
 ![Baseline B - WIRESHARK_DNS_POISONING_DNS_FILTER screenshot](/assets/images/dns-poisoning/WIRESHARK_KALI_DNS_BASEB.png)
 
-### ICMP Redirects observed during the DNS poisoning
+**ICMP Redirects observed during the DNS poisoning**
 
 ![Baseline B - WIRESHARK_DNS_POISONING_DNS_FILTER screenshot](/assets/images/dns-poisoning/WIRESHARK_KALI_BASE_B.png)
 
@@ -162,7 +162,7 @@ The legitimate Ubuntu server IP no longer appears — the attack succeeded. The 
 <!-- **Why this matters:**
 ICMP redirects are normally sent by legitimate routers to optimize routing. When a non-router (an unexpected host) starts sending them, it’s suspicious. In this lab the attacker uses ICMP redirects to force hosts to route traffic via the attacker, helping intercept DNS queries/responses and other traffic even if ARP spoofing alone is unreliable. Frequent redirects from an unexpected host are a strong detection signal. -->
 
-## **Detection & mitigation:**
+## **Detection & mitigation**
 
 - **Detect**
   - Alert on ICMP Redirects from hosts that are not legitimate routers/gateways.
@@ -177,11 +177,11 @@ ICMP redirects are normally sent by legitimate routers to optimize routing. When
   - Use DNSSEC and DoH/DoT where possible.
   - Harden ARP/DHCP through network controls and monitor routing anomalies.
 
-## Cleanup Steps
+**Cleanup Steps**
 
 After testing, revert your environment:
 
-### On Kali:
+**On Kali:**
 
 ```bash
 sudo iptables -D FORWARD -p udp -s 192.168.0.53 --sport 53 -d 192.168.0.30 -j DROP
@@ -190,7 +190,7 @@ sudo pkill -9 bettercap
 sudo pkill -9 -f "sudo bettercap"
 ```
 
-### On Windows 10 Victim:
+**On Windows 10 Victim:**
 
 ```bash
 netsh interface ip set dns "Ethernet" dhcp
@@ -198,7 +198,7 @@ ipconfig /flushdns
 nslookup portal.company.local
 ```
 
-### On Raspberry Pi:
+**On Raspberry Pi:**
 
 ```bash
 sudo systemctl restart dnsmasq

@@ -42,7 +42,7 @@ This project demonstrates a focused cloud SOC workflow using AWS-native evidence
 ![Proj-3 - Architecture - ssrf-to-cloud-investigation](/assets/images/proj-3/ARCH-ssrf-cloudtrail.png)
 
 <small><em>
-Screenshot purpose: a simple architecture view showing the app on EC2, the SSRF-style request path, metadata risk, CloudTrail investigation, and hardening controls.
+A simple architecture view showing the app on EC2, the SSRF-style request path, metadata risk, CloudTrail investigation, and hardening controls.
 </em></small>
 
 ## Setup (controlled): EC2 app + risky lab role context
@@ -54,7 +54,7 @@ This was a controlled lab scenario using only disposable resources and non-sensi
 ![Proj-3 - EC2 role attached to instance](/assets/images/proj-3/EC2-role-attached.png)
 
 <small><em>
-Screenshot purpose: blast-radius context — shows the EC2 instance profile / IAM role that would matter if metadata credentials were exposed.
+Blast-radius context — shows the EC2 instance profile / IAM role that would matter if metadata credentials were exposed.
 </em></small>
 
 ## Signal: SSRF-style request in application telemetry
@@ -66,7 +66,7 @@ The point of this project is the investigation workflow, not exploitation. The k
 ![Proj-3 - SSRF request logged in JSON](/assets/images/proj-3/APP-ssrf-log.png)
 
 <small><em>
-Screenshot purpose: detection signal — structured app telemetry capturing the suspicious fetch request, including the requested URL and source context.
+Detection signal — structured application telemetry showing a fetch request to the EC2 metadata address (169.254.169.254), including the requested URL, source IP, status, and timestamp.
 </em></small>
 
 ## Why this mattered
@@ -96,7 +96,7 @@ This let me answer the core analyst questions: what identity was active, what ac
 ![Proj-3 - CloudTrail sequence](/assets/images/proj-3/CT-killchain-seq.png)
 
 <small><em>
-Screenshot purpose: investigation proof — CloudTrail shows the relevant identity/API activity aligned to the suspicious request window.
+Investigation proof — CloudTrail shows the relevant identity/API activity aligned to the suspicious request window.
 </em></small>
 
 > If the SSRF attempt had successfully retrieved metadata credentials, a common first step for attackers would be calling **sts:GetCallerIdentity** to confirm the AWS account and role context. Analysts often look for this API call as an early indicator of credential misuse.
@@ -130,13 +130,13 @@ These changes do not just fix one request pattern; they reduce both the likeliho
 ![Proj-3 - IMDSv2 required](/assets/images/proj-3/EC2-imdsv2.png)
 
 <small><em>
-Screenshot purpose: chain-breaker control — shows the EC2 metadata service hardened with IMDSv2 required.
+Chain-breaker control — shows the EC2 metadata service hardened with IMDSv2 required.
 </em></small>
 
 ![Proj-3 - SSRF defense control](/assets/images/proj-3/APP-egress-or-allowlist.png)
 
 <small><em>
-Screenshot purpose: application/network hardening proof — shows that the fetcher was restricted from reaching metadata or untrusted destinations.
+Application/network hardening proof — shows that the fetcher was restricted from reaching metadata or untrusted destinations.
 </em></small>
 
 ## Add application-side blocking for metadata and local addresses
@@ -169,6 +169,8 @@ Example of the protection logic:
 )
 
 When a blocked destination is requested, the application logs the event and returns a 403 response.
+
+**<em>For this project, the goal was to demonstrate the remediation workflow rather than build a production-grade SSRF defense. In a real environment, I would also validate resolved IP addresses and restrict access to additional private, loopback, link-local, and IPv6 local address ranges to reduce the risk of filter bypass techniques.</em>**
 
 ## Validation: before/after risk reduction
 
