@@ -14,7 +14,7 @@ header:
 
 <div style="text-align:center; margin-top: 2rem;">
   <p style="font-size: 1.3rem; font-weight: 500; line-height: 1.6; margin-bottom: 1rem;">
-    Welcome! I break things (safely), fix them, and document the path.<br>
+    Welcome! Hands-on cybersecurity labs focused on SOC operations, cloud security, incident investigation, and defensive remediation.<br>
       </p>
     <p style="font-size: 1.3rem; font-weight: 500; line-height: 1.6; margin-bottom: 1rem;">Below: quick access to my <strong>Labs</strong>.</p>
 
