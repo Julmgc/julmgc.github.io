@@ -159,25 +159,32 @@
             openLightbox(getImageSrc(img), img.alt || "");
           }
         },
-        false
+        false,
       );
     });
   })();
 </script>
+
+{% if page.layout == "single" %}
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const article = document.querySelector(".page__content");
 
-    if (!article) {
+    if (!article || document.querySelector(".translate-button")) {
       return;
     }
 
     const translateButton = document.createElement("a");
 
-    translateButton.textContent = "🇧🇷 Ler em português";
+    translateButton.textContent = "🇧🇷 Traduzir automaticamente para português";
+
     translateButton.className = "translate-button";
     translateButton.target = "_blank";
     translateButton.rel = "noopener noreferrer";
+    translateButton.setAttribute(
+      "aria-label",
+      "Abrir tradução automática desta página em português",
+    );
 
     translateButton.href =
       "https://translate.google.com/translate" +
@@ -189,6 +196,7 @@
     article.insertBefore(translateButton, article.firstChild);
   });
 </script>
+{% endif %}
 
 <style>
   .translate-button {
@@ -201,7 +209,8 @@
     text-decoration: none;
   }
 
-  .translate-button:hover {
+  .translate-button:hover,
+  .translate-button:focus {
     text-decoration: none;
     transform: translateY(-1px);
   }
