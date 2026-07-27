@@ -164,3 +164,45 @@
     });
   })();
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const article = document.querySelector(".page__content");
+
+    if (!article) {
+      return;
+    }
+
+    const translateButton = document.createElement("a");
+
+    translateButton.textContent = "🇧🇷 Ler em português";
+    translateButton.className = "translate-button";
+    translateButton.target = "_blank";
+    translateButton.rel = "noopener noreferrer";
+
+    translateButton.href =
+      "https://translate.google.com/translate" +
+      "?sl=en" +
+      "&tl=pt" +
+      "&u=" +
+      encodeURIComponent(window.location.href);
+
+    article.insertBefore(translateButton, article.firstChild);
+  });
+</script>
+
+<style>
+  .translate-button {
+    display: inline-block;
+    margin: 0 0 1.5rem;
+    padding: 0.55rem 1rem;
+    border: 1px solid currentColor;
+    border-radius: 6px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .translate-button:hover {
+    text-decoration: none;
+    transform: translateY(-1px);
+  }
+</style>
