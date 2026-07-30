@@ -23,7 +23,7 @@ author: julia_pt
 **Importante — esta técnica é apresentada exclusivamente para fins educacionais e foi executada em um ambiente de laboratório privado. Realizar esse tipo de atividade em uma rede sem autorização explícita é ilegal e antiético. Evidências completas do laboratório podem ser disponibilizadas a recrutadores e educadores mediante solicitação.**
 </em>
 
-## O que é ARP spoofing?
+### O que é ARP spoofing?
 
 <div class="justify-text">
 
@@ -56,7 +56,7 @@ Este projeto demonstra ARP spoofing e apresenta formas de prevenção. Primeiro,
 
 ---
 
-## Baseline A — funcionamento normal, sem ARP spoofing
+### Baseline A — funcionamento normal, sem ARP spoofing
 
 <p class="indent" style="text-indent: 2rem;">
 O cliente Windows, <strong>WINDOWS10_VICTIM</strong>, acessa o endereço <code>ubuntu.lab</code>, hospedado em <strong>UBUNTU_SERVER</strong>. O cliente resolve o nome utilizando o resolvedor DNS local, <strong>DNS_SERVER</strong>, e depois estabelece conexão com o servidor.
@@ -82,9 +82,9 @@ Quando <strong>WINDOWS10_VICTIM</strong> executa <code>nslookup ubuntu.lab</code
 
 ---
 
-## Baseline B — ARP spoofing em um cenário man-in-the-middle
+### Baseline B — ARP spoofing em um cenário man-in-the-middle
 
-### Qual é o impacto real quando um atacante consegue realizar ARP spoofing dentro de uma rede?
+**Qual é o impacto real quando um atacante consegue realizar ARP spoofing dentro de uma rede?**
 
 ![Baseline B - topologia MITM](/assets/images/arp-spoofing/FINAL_BASE_B_SYSTEMS.png)
 
@@ -104,7 +104,7 @@ Para executar o teste de ARP spoofing em <strong>KALI_ATTACKER</strong>, usei a 
 
 Abra dois terminais separados na máquina Kali.
 
-### Terminal 1 — alterar a tabela ARP da máquina Windows
+**Terminal 1 — alterar a tabela ARP da máquina Windows**
 
 O objetivo é fazer o Windows associar o IP do servidor Ubuntu ao endereço MAC da máquina Kali.
 
@@ -118,7 +118,7 @@ Parâmetros:
 - `-t WINDOWS10_VICTIM_IP`: endereço IP do alvo Windows.
 - `UBUNTU_SERVER_IP`: endereço IP do servidor que será representado falsamente para o alvo.
 
-### Terminal 2 — alterar a tabela ARP do servidor Ubuntu
+**Terminal 2 — alterar a tabela ARP do servidor Ubuntu**
 
 O objetivo é fazer o servidor Ubuntu associar o IP da máquina Windows ao endereço MAC da Kali.
 
@@ -170,7 +170,7 @@ Neste contexto, ela representa um efeito adicional na camada de rede causado pel
 
 ![Baseline B - captura no Wireshark](/assets/images/arp-spoofing/BASE_B_WIN10_WIRESHARK_ARP.png)
 
-## Como detectar ARP spoofing
+### Como detectar ARP spoofing
 
 Alguns indicadores úteis incluem:
 
@@ -182,9 +182,9 @@ Alguns indicadores úteis incluem:
 - alertas de ferramentas como Arpwatch, XArp, Snort ou Suricata;
 - comportamento anormal de roteamento ou mensagens ICMP Redirect vindas de hosts que não são gateways.
 
-## Como prevenir ARP spoofing
+### Como prevenir ARP spoofing
 
-### Controles em switches
+**Controles em switches**
 
 - habilitar **DHCP snooping**;
 - habilitar **Dynamic ARP Inspection — DAI**;
@@ -192,35 +192,35 @@ Alguns indicadores úteis incluem:
 - limitar dispositivos permitidos por porta;
 - monitorar mudanças inesperadas em bindings de IP e MAC.
 
-### Entradas ARP estáticas
+**Entradas ARP estáticas**
 
 Configurar associações estáticas entre IP e MAC para sistemas críticos, como gateways e servidores importantes.
 
 Esse controle pode impedir alterações não autorizadas, embora não seja prático para redes grandes ou muito dinâmicas.
 
-### Hardening em hosts Linux
+**Hardening em hosts Linux**
 
 Ferramentas como **ArpON** e regras com **arptables** podem ajudar a validar ou bloquear atividades ARP suspeitas.
 
-### Proteção em endpoints Windows
+**Proteção em endpoints Windows**
 
 Ferramentas como **XArp** podem detectar mudanças incomuns, bloquear tentativas e gerar alertas sobre possíveis ataques.
 
-### Monitoramento de rede
+**Monitoramento de rede**
 
 Serviços como **Arpwatch** e **Arpalert** podem identificar alterações inesperadas nas associações entre IP e MAC.
 
-### IDS e IPS
+**IDS e IPS**
 
 Soluções como **Snort** e **Suricata** podem detectar padrões anormais de tráfego ARP e encaminhar alertas para o SIEM.
 
-### Criptografia e VPN
+**Criptografia e VPN**
 
 O uso de **TLS/HTTPS**, criptografia ponta a ponta e VPNs não impede o ARP spoofing em si, mas reduz significativamente o valor do tráfego interceptado.
 
 > Mesmo que o atacante consiga redirecionar o tráfego, a criptografia ajuda a proteger a confidencialidade e a integridade dos dados.
 
-## Conclusão
+### Conclusão
 
 Este laboratório demonstrou:
 
