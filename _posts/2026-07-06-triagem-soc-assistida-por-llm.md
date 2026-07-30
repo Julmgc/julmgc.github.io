@@ -6,6 +6,8 @@ lang: pt-BR
 translation_key: llm-assisted-soc-triage
 author_profile: true
 author: julia_pt
+sidebar:
+  nav: "sidebar_pt"
 toc: true
 toc_sticky: true
 categories: [Laboratórios, SOC, Segurança com IA]

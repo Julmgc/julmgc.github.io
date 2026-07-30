@@ -6,6 +6,8 @@ lang: pt-BR
 translation_key: endpoint-alert-triage-powershell-wazuh
 author_profile: true
 author: julia_pt
+sidebar:
+  nav: "sidebar_pt"
 toc: true
 toc_sticky: true
 categories: [Laboratórios, SOC]

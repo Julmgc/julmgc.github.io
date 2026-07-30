@@ -17,6 +17,9 @@ header:
   image_height: 300px
 author_profile: true
 author: julia_pt
+
+sidebar:
+  nav: "sidebar_pt"
 ---
 
 # DNS Poisoning

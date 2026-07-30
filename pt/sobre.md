@@ -5,6 +5,8 @@ permalink: /pt/sobre/
 lang: pt-BR
 author: julia_pt
 author_profile: true
+sidebar:
+  nav: "sidebar_pt"
 ---
 
 Sou desenvolvedora de software com experiência em desenvolvimento back-end e atualmente em transição para cibersegurança.

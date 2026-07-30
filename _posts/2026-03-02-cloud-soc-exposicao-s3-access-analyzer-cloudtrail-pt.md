@@ -6,6 +6,8 @@ lang: pt-BR
 translation_key: cloud-soc-s3-exposure-access-analyzer-cloudtrail
 author_profile: true
 author: julia_pt
+sidebar:
+  nav: "sidebar_pt"
 toc: true
 toc_sticky: true
 categories: [Laboratórios, SOC, Nuvem]

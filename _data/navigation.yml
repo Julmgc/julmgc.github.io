@@ -35,3 +35,14 @@ sidebar:
         url: /tags/
       - title: "Categories"
         url: /categories/
+
+# Menu lateral em português
+sidebar_pt:
+  - title: "Navegar"
+    children:
+      - title: "Todos os laboratórios"
+        url: /pt/laboratorios/
+      - title: "Tags"
+        url: /pt/tags/
+      - title: "Categorias"
+        url: /pt/categorias/

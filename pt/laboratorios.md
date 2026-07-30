@@ -4,6 +4,8 @@ title: "Laboratórios"
 permalink: /pt/laboratorios/
 lang: pt-BR
 author: julia_pt
+sidebar:
+  nav: "sidebar_pt"
 author_profile: true
 show_excerpts: true
 ---
