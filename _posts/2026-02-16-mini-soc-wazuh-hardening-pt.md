@@ -67,11 +67,11 @@ Todo o tráfego apresentado foi gerado dentro da VLAN20. O endereço IP de orige
 
 ## Telemetria: tornando a aplicação adequada para um SOC
 
-### Nginx como proxy reverso
+**Nginx como proxy reverso**
 
 A UbuntuApp executa uma aplicação Flask atrás do **Nginx**, utilizado como proxy reverso. O Nginx encerra a conexão do cliente e encaminha a requisição para o serviço da aplicação.
 
-### Logs estruturados da aplicação Flask
+**Logs estruturados da aplicação Flask**
 
 Para produzir sinais úteis para o SOC, implementei logs estruturados em JSON dentro da aplicação Flask:
 
@@ -100,7 +100,7 @@ Criei e testei regras personalizadas no arquivo `local_rules.xml` para demonstra
 🔗 Wazuh `local_rules.xml`
 </a>
 
-## Sinal de força bruta em autenticação: falhas no endpoint `/login`
+**Sinal de força bruta em autenticação: falhas no endpoint `/login`**
 
 Para simular um sinal realista de ataque contra autenticação, gerei aproximadamente 20 tentativas de login malsucedidas a partir da Jumpbox (`192.168.20.10`) contra a UbuntuApp (`192.168.20.50`).
 
@@ -139,7 +139,7 @@ agent.name:"ubuntu-app" and data.path:"/login" and data.status:401 and data.srci
 
 ![Baseline A - Contagem de eventos no Wazuh](/assets/images/proj-1/WAZUH_COUNT_UP.png)
 
-### Observações de triagem
+**Observações de triagem**
 
 - O padrão corresponde a uma rajada de tentativas semelhante a credential stuffing: várias respostas `401` provenientes da mesma origem em um curto intervalo.
 - Os campos principais foram `agent.name`, `data.srcip`, `data.path`, `data.status`, `data.app` e `data.method`.
@@ -174,7 +174,7 @@ and (data.path:"/wp-login.php" or data.path:"/admin" or data.path:"/.git/config"
 
 ![Baseline A - Eventos encontrados no Wazuh Discover](/assets/images/proj-1/wazuh_discover_hits.png)
 
-### Observações de triagem
+**Observações de triagem**
 
 - Uma rajada de requisições para vários caminhos sensíveis em um curto intervalo é típica de reconhecimento.
 - Respostas `404` isoladas são ruído comum; a diversidade de caminhos é um sinal mais relevante.
@@ -219,7 +219,7 @@ Abaixo, o alerta correlacionado disparando no Wazuh Discover:
 
 ![Baseline A - Regra 100200 no Wazuh](/assets/images/proj-1/ruleID100200.png)
 
-### Observações de triagem
+**Observações de triagem**
 
 - A correlação `31164 → 100200` reduz ruído e melhora o roteamento, transformando um indicador de menor confiança em um alerta de prioridade mais alta.
 - O próximo ajuste seria disparar a regra `100200` somente após pelo menos três eventos em dois minutos por `srcip`, reduzindo alertas causados por tentativas isoladas.
@@ -269,19 +269,19 @@ A captura com `tcpdump` na UbuntuApp mostrou pacotes `TCP/80` partindo de `192.1
 
 ![Baseline A - Tráfego entre Jumpbox e UbuntuApp](/assets/images/proj-1/jumpbox-ubuntu-curl-traffic.png)
 
-### Controle aplicado no endpoint
+**Controle aplicado no endpoint**
 
 Configurei o UFW na UbuntuApp para bloquear conexões `TCP/80` provenientes de `192.168.20.10`, mantendo o SSH disponível para gerenciamento.
 
 ![Baseline A - Status do UFW](/assets/images/proj-1/ufw-status.png)
 
-### Validação
+**Validação**
 
 Após aplicar o controle, repeti a mesma requisição. O resultado foi uma redução clara nos alertas de SQL injection associados à regra `100200`.
 
 ![Baseline A - Dashboard do Wazuh após contenção](/assets/images/proj-1/wazuh-dashboard-SQLi.png)
 
-### Cadeia de evidências validada
+**Cadeia de evidências validada**
 
 - O alerta foi disparado por `rule.id:100200`.
 - A requisição foi confirmada na telemetria por meio de `data.url` e `full_log`.

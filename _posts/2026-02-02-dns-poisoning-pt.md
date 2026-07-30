@@ -42,7 +42,7 @@ Todos os testes foram realizados em um laboratório **Proxmox**, usando máquina
 | **DNS_SERVER**       | Raspberry Pi     | Resolvedor DNS local usando _dnsmasq_             |
 | **UBUNTU_SERVER**    | Servidor web     | Site legítimo hospedado em `portal.company.local` |
 
-## O que é DNS poisoning?
+**O que é DNS poisoning?**
 
 DNS poisoning, também chamado de DNS spoofing, é um ataque em que um adversário falsifica respostas DNS para fazer com que um domínio legítimo resolva para um **endereço IP malicioso**.
 
@@ -53,7 +53,7 @@ Quando o usuário tenta acessar um domínio confiável, pode ser redirecionado s
 - injetar anúncios ou scripts;
 - apoiar outros ataques man-in-the-middle, como em combinação com ARP spoofing.
 
-### Objetivos comuns do atacante
+**Objetivos comuns do atacante**
 
 - distribuição de malware;
 - redirecionamento de tráfego;
@@ -61,7 +61,7 @@ Quando o usuário tenta acessar um domínio confiável, pode ser redirecionado s
 - monitoramento ou interrupção de comunicações;
 - contorno de restrições geográficas ou controles de segurança.
 
-### Indicadores de DNS poisoning
+**Indicadores de DNS poisoning**
 
 - redirecionamento para sites desconhecidos ou suspeitos;
 - alertas do navegador sobre certificados TLS inválidos;
@@ -105,7 +105,7 @@ na máquina Windows 10, o endereço IP correto do servidor Ubuntu foi retornado,
 
 Usei o **Bettercap** na máquina Kali para interceptar o tráfego e falsificar respostas DNS dentro do laboratório controlado.
 
-### Etapa 1 — iniciar ARP spoofing
+**Etapa 1 — iniciar ARP spoofing**
 
 O objetivo foi redirecionar o tráfego entre a vítima e o servidor DNS por meio da máquina atacante:
 
@@ -118,7 +118,7 @@ A tabela ARP do Windows passou a mostrar o mesmo endereço MAC associado ao serv
 
 ![Baseline B - tabela ARP da vítima Windows](/assets/images/dns-poisoning/ARP_TABLE_WINDOWS10_ARP_SPOOF_BASE_B.png)
 
-### Etapa 2 — iniciar DNS spoofing
+**Etapa 2 — iniciar DNS spoofing**
 
 ```bash
 sudo bettercap -iface eth0 -eval "
@@ -141,7 +141,7 @@ No meu laboratório, essa configuração não funcionou de forma confiável. Por
 
 Depois disso, quando a vítima consultava `portal.company.local`, a resposta DNS passava a vir da máquina atacante, e não do servidor DNS legítimo.
 
-### Etapa 3 — bloquear respostas DNS legítimas
+**Etapa 3 — bloquear respostas DNS legítimas**
 
 Para garantir que a vítima recebesse apenas a resposta falsificada, bloqueei na máquina Kali as respostas originadas pelo servidor DNS legítimo:
 
@@ -170,17 +170,17 @@ O formato IPv6 mapeado observado na resposta também representou uma anomalia de
 
 ## Evidências da investigação
 
-### Captura no Wireshark das respostas DNS falsificadas
+**Captura no Wireshark das respostas DNS falsificadas**
 
 ![Baseline B - respostas DNS falsificadas no Wireshark](/assets/images/dns-poisoning/WIRESHARK_KALI_DNS_BASEB.png)
 
-### ICMP Redirects observados durante o teste
+**ICMP Redirects observados durante o teste**
 
 ![Baseline B - ICMP Redirects no Wireshark](/assets/images/dns-poisoning/WIRESHARK_KALI_BASE_B.png)
 
 ## Detecção e mitigação
 
-### Detecção
+**Detecção**
 
 - Alertar sobre mensagens ICMP Redirect originadas de hosts que não sejam roteadores ou gateways legítimos.
 - Correlacionar ICMP Redirects com alterações na tabela ARP e respostas DNS inesperadas.
@@ -188,7 +188,7 @@ O formato IPv6 mapeado observado na resposta também representou uma anomalia de
 - Comparar respostas DNS entre resolvedores confiáveis.
 - Investigar alterações súbitas na associação entre endereços IP e MAC.
 
-### Mitigação imediata
+**Mitigação imediata**
 
 Desabilitar a aceitação de ICMP Redirects nos endpoints.
 
@@ -200,7 +200,7 @@ sudo sysctl -w net.ipv4.conf.all.accept_redirects=0
 
 No Windows, isso pode ser feito por configurações de rede ou pelo Registro, conforme a política do ambiente.
 
-### Medidas de longo prazo
+**Medidas de longo prazo**
 
 - aplicar segmentação de rede;
 - permitir que apenas roteadores confiáveis enviem redirects;
@@ -214,7 +214,7 @@ No Windows, isso pode ser feito por configurações de rede ou pelo Registro, co
 
 Após o teste, reverti as alterações para restaurar o ambiente.
 
-### Na máquina Kali
+**Na máquina Kali**
 
 ```bash
 sudo iptables -D FORWARD -p udp -s 192.168.0.53 --sport 53 -d 192.168.0.30 -j DROP
@@ -223,7 +223,7 @@ sudo pkill -9 bettercap
 sudo pkill -9 -f "sudo bettercap"
 ```
 
-### Na máquina Windows 10
+**Na máquina Windows 10**
 
 ```bash
 netsh interface ip set dns "Ethernet" dhcp
@@ -231,7 +231,7 @@ ipconfig /flushdns
 nslookup portal.company.local
 ```
 
-### No Raspberry Pi
+**No Raspberry Pi**
 
 ```bash
 sudo systemctl restart dnsmasq
@@ -241,7 +241,7 @@ Após a limpeza, a vítima voltou a resolver `portal.company.local` para o ender
 
 ## Como prevenir DNS poisoning
 
-### Para usuários
+**Para usuários**
 
 - limpar o cache DNS ao suspeitar de envenenamento;
 - usar **DNS-over-HTTPS** ou **DNS-over-TLS** com resolvedores confiáveis;
@@ -250,7 +250,7 @@ Após a limpeza, a vítima voltou a resolver `portal.company.local` para o ender
 - preferir HTTPS e observar alertas de certificados;
 - utilizar uma VPN que imponha resolvedores DNS confiáveis.
 
-### Para administradores
+**Para administradores**
 
 - habilitar **DNSSEC** para validação de respostas assinadas;
 - proteger contas de registradores de domínio com MFA;
