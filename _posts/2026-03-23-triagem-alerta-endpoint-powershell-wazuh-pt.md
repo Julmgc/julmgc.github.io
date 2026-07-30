@@ -31,7 +31,7 @@ header:
   image_height: 300px
 ---
 
-## Visão geral
+### Visão geral
 
 Alertas de endpoint no Windows costumam ser ambíguos. Um evento de PowerShell pode ser completamente benigno, levemente suspeito ou exigir escalonamento, dependendo da linha de comando, do processo pai, do contexto do host e das atividades observadas no mesmo período. Este projeto se concentra justamente nessa etapa de julgamento do analista.
 
@@ -46,13 +46,13 @@ Neste laboratório, eu:
 
 **Evidências produzidas:** visualizações de eventos no Wazuh, dados brutos de processos coletados pelo Sysmon, contexto de atividades próximas no host e uma breve conclusão analítica.
 
-## Por que este cenário é realista para um SOC
+### Por que este cenário é realista para um SOC
 
 - O sinal é sustentado por **telemetria real de criação de processos do Sysmon**, e não apenas por uma captura de tela do terminal.
 - A mesma família ampla de regras do Wazuh pode corresponder a diferentes execuções de PowerShell. Por isso, o analista precisa examinar os **detalhes do evento original**, e não apenas o nome do alerta.
 - O resultado não é simplesmente “bloqueei uma ameaça”. O resultado é uma **decisão clara do analista**: revisar, explicar, monitorar ou escalonar, conforme o contexto.
 
-## Arquitetura do laboratório
+### Arquitetura do laboratório
 
 Usei uma estrutura pequena, voltada ao monitoramento de endpoints Windows:
 
@@ -63,7 +63,7 @@ Usei uma estrutura pequena, voltada ao monitoramento de endpoints Windows:
 
 ![Proj-4 - Arquitetura - pipeline do endpoint Windows](/assets/images/proj-4/ARCH-endpoint-investigation 1.png)
 
-## Telemetria de endpoint: tornando a atividade de processos do Windows investigável
+### Telemetria de endpoint: tornando a atividade de processos do Windows investigável
 
 Para tornar as execuções de PowerShell analisáveis em um fluxo semelhante ao de um SOC, usei **eventos de criação de processo do Sysmon** no host Windows e os encaminhei ao Wazuh por meio do agente instalado no endpoint.
 
@@ -79,7 +79,7 @@ Isso forneceu os campos mais relevantes para a triagem:
 
 Esses detalhes são o que tornam um alerta de PowerShell realmente útil. Sem eles, o analista fica restrito a um nome genérico de regra e a pouco contexto para tomar uma decisão.
 
-## Sinal gerado em laboratório: quatro execuções seguras de PowerShell
+### Sinal gerado em laboratório: quatro execuções seguras de PowerShell
 
 Para tornar o exercício de triagem mais realista, gerei **quatro comandos seguros de PowerShell** no endpoint Windows em um intervalo curto. Todos eram inofensivos, mas um deles foi escolhido de propósito para exigir mais atenção do analista.
 
@@ -94,7 +94,7 @@ powershell.exe -Command "whoami; hostname; Get-Date"
 
 O objetivo não era simular malware. A ideia era produzir um pequeno conjunto de eventos semelhantes e praticar a decisão sobre qual deles justificava uma investigação mais aprofundada.
 
-## Sinal inicial: família de eventos relacionados ao PowerShell no Wazuh
+### Sinal inicial: família de eventos relacionados ao PowerShell no Wazuh
 
 O Wazuh agrupou essas execuções sob a mesma família ampla de detecção relacionada ao PowerShell. Isso é realista: em muitos ambientes de SOC, o primeiro sinal não é uma detecção perfeita, mas um evento amplo que merece análise e ainda depende de contexto adicional.
 
@@ -111,7 +111,7 @@ Nesta etapa, as perguntas do analista eram:
 - Quantos eventos relacionados ocorreram no mesmo intervalo?
 - Qual deles merece uma inspeção mais detalhada?
 
-## Revisão das evidências: selecionando a execução mais relevante
+### Revisão das evidências: selecionando a execução mais relevante
 
 Entre os quatro comandos, um se destacou como o principal candidato para uma investigação mais aprofundada:
 
@@ -129,7 +129,7 @@ Os outros três comandos também foram capturados pelo Wazuh, mas se pareciam ma
 
 É nesse ponto que o projeto deixa de ser apenas “houve uma execução de PowerShell” e se torna um verdadeiro exercício de triagem.
 
-## Evidência bruta do Sysmon: evento de criação de processo
+### Evidência bruta do Sysmon: evento de criação de processo
 
 Após selecionar a execução mais relevante, abri no Wazuh o evento bruto de criação de processo registrado pelo Sysmon.
 
@@ -139,14 +139,14 @@ Após selecionar a execução mais relevante, abri no Wazuh o evento bruto de cr
 Evento bruto de criação de processo do Sysmon: timestamp, nome do agente, linha de comando, linha de comando do processo pai, imagem do processo pai, contexto do usuário e descrição da regra do Wazuh.
 </em></small>
 
-### Observações de triagem
+**Observações de triagem**
 
 - O evento não indicava apenas “atividade de PowerShell”.
 - A linha de comando mostrou por que essa execução merecia mais atenção do que as demais.
 - O contexto do processo pai ajudou a entender como a execução foi iniciada.
 - Essa é a etapa que transforma uma detecção ampla em uma evidência útil para o analista.
 
-## Contexto do processo: atividades próximas no mesmo endpoint
+### Contexto do processo: atividades próximas no mesmo endpoint
 
 Um único evento bruto é útil, mas não é suficiente por si só. Depois de analisar o evento selecionado, ampliei novamente a visualização no Wazuh para compará-lo com atividades próximas no mesmo host.
 
@@ -158,13 +158,13 @@ Contexto do processo no Wazuh: a execução de PowerShell analisada ao lado de a
 
 Essa visão mais ampla foi importante porque mostrou que o evento analisado fazia parte de um pequeno conjunto de atividades próximas no host, em vez de aparecer como uma captura isolada e sem contexto.
 
-### Observações de triagem
+**Observações de triagem**
 
 - A regra ampla relacionada ao PowerShell continuava sendo útil, mas a avaliação real dependia dos detalhes do evento e do contexto do host.
 - O evento selecionado era o principal candidato para análise devido aos parâmetros usados e à ação orientada à rede.
 - As atividades próximas no host não mostraram evidências imediatas de persistência ou de comportamento malicioso subsequente dentro do período analisado.
 
-## Avaliação do analista: encerrar, monitorar, escalonar ou conter?
+### Avaliação do analista: encerrar, monitorar, escalonar ou conter?
 
 Este caso foi projetado como um exercício de decisão, não como um exercício de contenção.
 
@@ -188,7 +188,7 @@ Portanto, a disposição mais realista para este caso seria:
 
 Em um SOC real, essa distinção é importante. Nem todo alerta deve se transformar em um incidente de alta severidade, mas também não deve ser descartado sem análise.
 
-## Próximas melhorias
+### Próximas melhorias
 
 - Criar uma regra personalizada no Wazuh para padrões mais específicos de PowerShell suspeito ou para relações incomuns entre processos pai e filho.
 - Comparar, na mesma linha do tempo do host, execuções claramente benignas com outras que exijam mais atenção.

@@ -32,7 +32,7 @@ header:
   image_height: 300px
 ---
 
-## Visão geral
+### Visão geral
 
 Este projeto demonstra um fluxo de trabalho focado de SOC em nuvem, usando evidências nativas da AWS:
 
@@ -48,7 +48,7 @@ Este projeto demonstra um fluxo de trabalho focado de SOC em nuvem, usando evid�
 Visão simplificada da arquitetura, mostrando a aplicação no EC2, o caminho da requisição no estilo SSRF, o risco relacionado ao serviço de metadados, a investigação no CloudTrail e os controles de hardening.
 </em></small>
 
-## Configuração controlada: aplicação no EC2 e contexto de função IAM excessivamente permissiva
+### Configuração controlada: aplicação no EC2 e contexto de função IAM excessivamente permissiva
 
 Executei um pequeno serviço Flask em uma instância EC2 com um endpoint capaz de buscar URLs. Para fins de laboratório, a instância utilizava uma função IAM com permissões mais amplas do que o necessário, permitindo demonstrar por que o acesso ao serviço de metadados aumentaria o risco caso os controles da aplicação fossem insuficientes.
 
@@ -60,7 +60,7 @@ Este foi um cenário controlado, utilizando apenas recursos descartáveis e dado
 Contexto do raio de impacto: mostra o instance profile e a função IAM associados à instância EC2, que seriam relevantes caso credenciais temporárias fossem expostas por meio do serviço de metadados.
 </em></small>
 
-## Sinal: requisição no estilo SSRF na telemetria da aplicação
+### Sinal: requisição no estilo SSRF na telemetria da aplicação
 
 Para produzir um sinal útil para um SOC, a aplicação registra cada requisição em formato JSON estruturado. Primeiro, gerei uma requisição normal como linha de base. Em seguida, enviei uma requisição direcionada ao endereço de metadados do EC2 (`169.254.169.254`) para simular uma tentativa de SSRF contra o IMDS.
 
@@ -72,7 +72,7 @@ O foco deste projeto é o fluxo de investigação, não a exploração. O princi
 Sinal de detecção: telemetria estruturada da aplicação mostrando uma requisição ao endereço de metadados do EC2 (`169.254.169.254`), incluindo a URL solicitada, o IP de origem, o status e o timestamp.
 </em></small>
 
-## Por que esse sinal era importante
+### Por que esse sinal era importante
 
 O endereço IP de metadados é relevante porque o EC2 utiliza o Instance Metadata Service para disponibilizar informações da instância e, quando aplicável, credenciais temporárias associadas à função IAM.
 
@@ -85,7 +85,7 @@ Do ponto de vista do analista, isso levanta perguntas como:
 - Houve alguma chamada suspeita de API da AWS logo depois?
 - Qual função IAM poderia ter sido afetada caso credenciais fossem expostas?
 
-## Investigação: linha do tempo no histórico de eventos do CloudTrail
+### Investigação: linha do tempo no histórico de eventos do CloudTrail
 
 Para construir uma linha do tempo defensável, consultei o histórico de eventos do CloudTrail no período próximo à tentativa de SSRF e revisei as atividades de identidade e de API associadas à função da instância.
 
@@ -122,7 +122,7 @@ detectar → pivotar → investigar → documentar → reforçar a segurança.
 Objetivo da captura: mostrar o fluxo de trabalho do analista em uma visão que conecta a requisição suspeita da aplicação à janela de investigação em nuvem, facilitando triagem e documentação.
 </em></small> -->
 
-## Remediação: reduzindo o caminho de risco
+### Remediação: reduzindo o caminho de risco
 
 Apliquei três medidas concretas de hardening para reduzir o caminho de risco entre SSRF e exposição de recursos em nuvem:
 
@@ -144,7 +144,7 @@ Controle que interrompe a cadeia de risco: mostra o serviço de metadados do EC2
 Evidência de hardening na aplicação e na rede: mostra que o endpoint de busca foi impedido de alcançar o serviço de metadados e destinos não confiáveis.
 </em></small>
 
-## Bloqueio na aplicação para endereços de metadados e redes locais
+### Bloqueio na aplicação para endereços de metadados e redes locais
 
 Em seguida, implementei um controle defensivo simples na aplicação Flask para impedir que o endpoint `/fetch` realizasse requisições a endereços de metadados ou a destinos locais.
 
@@ -176,7 +176,7 @@ Quando um destino bloqueado é solicitado, a aplicação registra o evento e ret
 
 **<em>Neste projeto, o objetivo foi demonstrar o fluxo de remediação, e não implementar uma defesa de SSRF pronta para produção. Em um ambiente real, eu também validaria os endereços IP resultantes da resolução DNS e restringiria outras faixas privadas, loopback, link-local e endereços locais IPv6, reduzindo o risco de técnicas de bypass dos filtros.</em>**
 
-## Validação: redução do risco antes e depois da correção
+### Validação: redução do risco antes e depois da correção
 
 Após aplicar o hardening, executei novamente a mesma requisição no estilo SSRF direcionada ao serviço de metadados.
 
@@ -188,7 +188,7 @@ A tentativa continuou visível na telemetria da aplicação, mas já não seguia
 
 Isso confirmou que o padrão suspeito continuava detectável, enquanto o comportamento de risco havia sido reduzido por controles tanto na infraestrutura quanto na aplicação.
 
-## Checklist resumido de investigação
+### Checklist resumido de investigação
 
 1. **Revisar a telemetria da aplicação:** identificar requisições suspeitas a destinos de metadados ou link-local.
 2. **Avaliar o escopo da função:** confirmar qual função IAM ou instance profile estava associado à instância EC2.
@@ -196,7 +196,7 @@ Isso confirmou que o padrão suspeito continuava detectável, enquanto o comport
 4. **Reduzir a exposição:** exigir IMDSv2, bloquear o acesso ao serviço de metadados pelo endpoint e restringir as permissões da função.
 5. **Validar:** executar novamente o teste e confirmar que o caminho de risco foi reduzido após a correção.
 
-### Checklist de triagem em nuvem
+**Checklist de triagem em nuvem**
 
 - Revisar os logs da aplicação em busca de requisições direcionadas a metadados.
 - Verificar no CloudTrail atividades próximas de STS e chamadas `Describe*` ou `List*`.
@@ -204,7 +204,7 @@ Isso confirmou que o padrão suspeito continuava detectável, enquanto o comport
 - Validar que o endpoint de busca bloqueia endereços de metadados e redes locais.
 - Registrar a URL suspeita, o IP de origem, os timestamps e as correções aplicadas.
 
-## Próximas melhorias
+### Próximas melhorias
 
 - Criar uma regra personalizada no Wazuh para sinalizar requisições a endereços de metadados ou faixas link-local.
 - Expandir a aplicação para registrar um identificador de requisição, facilitando a correlação entre a aplicação e a linha do tempo da nuvem.

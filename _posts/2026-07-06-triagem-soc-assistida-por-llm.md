@@ -34,7 +34,7 @@ header:
   image_height: 300px
 ---
 
-## Resumo do projeto
+### Resumo do projeto
 
 Este projeto avalia como um LLM pode auxiliar nas etapas iniciais da triagem de alertas em um SOC.
 
@@ -44,7 +44,7 @@ Construí um pequeno laboratório inspirado em um ambiente de SOC usando **Splun
 
 O objetivo não era automatizar decisões finais, mas testar se a IA poderia ajudar o analista a trabalhar com mais rapidez sem chegar a conclusões que não fossem sustentadas pelas evidências.
 
-## Ferramentas utilizadas
+### Ferramentas utilizadas
 
 - **Splunk Enterprise** — camada de SIEM, busca e investigação
 - **Splunk Universal Forwarder** — encaminhamento dos logs do Windows
@@ -54,7 +54,7 @@ O objetivo não era automatizar decisões finais, mas testar se a IA poderia aju
 - **MITRE ATT&CK** — mapeamento de técnicas
 - **Windows Event Logs** — eventos de autenticação e gerenciamento de contas
 
-## Arquitetura do laboratório
+### Arquitetura do laboratório
 
 ```text
 Máquina virtual Windows
@@ -76,7 +76,7 @@ Avaliação gerada pela IA
 Validação manual do analista
 ```
 
-## O que foi desenvolvido
+### O que foi desenvolvido
 
 Criei um conjunto de dados com oito alertas inspirados em cenários de SOC:
 
@@ -93,7 +93,7 @@ Criei um conjunto de dados com oito alertas inspirados em cenários de SOC:
 
 Cada alerta foi armazenado em um arquivo JSON e processado por um script em Python.
 
-## Validação no Splunk: alerta de criação de conta
+### Validação no Splunk: alerta de criação de conta
 
 Como exemplo principal, utilizei o **Alerta 05: nova conta local criada**.
 
@@ -142,7 +142,7 @@ index=_ source="WinEventLog:Microsoft-Windows-Sysmon/Operational"
 
 ![Sysmon Event ID 1 com o processo responsável pela criação da conta](/assets/images/proj-6/Sysmon-Event-ID1,-process-creation.png)
 
-## Fluxo de triagem em Python
+### Fluxo de triagem em Python
 
 O script em Python carrega um arquivo JSON de alerta, insere seu contexto em um prompt estruturado, envia os dados para a API da OpenAI e salva a saída produzida pela IA.
 
@@ -172,7 +172,7 @@ ai-assisted-soc-triage/
 └── .env.example
 ```
 
-## Exemplo de resultado: nova conta local criada
+### Exemplo de resultado: nova conta local criada
 
 Para o Alerta 05, o LLM classificou o evento da seguinte forma:
 
@@ -188,7 +188,7 @@ No entanto, o modelo não conseguiu determinar se a ação havia sido autorizada
 
 Isso tornou o alerta um bom caso de teste: o comportamento era relevante para a segurança, mas as evidências não eram suficientes para confirmar um comprometimento.
 
-## Validação manual do analista
+### Validação manual do analista
 
 Analisei manualmente cada saída produzida pela IA usando as mesmas evidências.
 
@@ -210,7 +210,7 @@ Justificativa:
 
 A saída da IA estava parcialmente correta. O modelo identificou a preocupação de segurança adequada e sugeriu um mapeamento relevante do MITRE ATT&CK, mas a classificação final ainda dependia da validação do analista.
 
-## Comparação entre a análise humana e a IA
+### Comparação entre a análise humana e a IA
 
 | Alerta                                | Classificação da IA | Classificação manual     | Resultado            |
 | ------------------------------------- | ------------------- | ------------------------ | -------------------- |
@@ -232,7 +232,7 @@ Parcialmente corretos: 2
 Incorretos: 1
 ```
 
-## Principais conclusões
+### Principais conclusões
 
 O LLM foi útil para:
 
@@ -249,7 +249,7 @@ O uso do LLM apresentou maior risco quando:
 - os mapeamentos do MITRE ATT&CK eram plausíveis, mas não estavam totalmente sustentados pelas evidências;
 - faltava contexto sobre o ambiente.
 
-## Competências demonstradas pelo projeto
+### Competências demonstradas pelo projeto
 
 Este laboratório demonstra experiência prática em:
 
@@ -266,7 +266,7 @@ Este laboratório demonstra experiência prática em:
 
 A principal conclusão é que a IA pode auxiliar na primeira etapa da triagem de alertas, mas o analista ainda precisa verificar se as evidências realmente sustentam a conclusão apresentada.
 
-## Conclusão
+### Conclusão
 
 O projeto demonstrou que um LLM pode acelerar a análise de alertas ao resumir evidências, identificar observáveis e sugerir os próximos passos da investigação.
 

@@ -31,7 +31,7 @@ header:
   image_height: 300px
 ---
 
-## Visão geral
+### Visão geral
 
 Este projeto demonstra um fluxo de investigação em nuvem usando evidências nativas da AWS:
 
@@ -48,7 +48,7 @@ Este projeto demonstra um fluxo de investigação em nuvem usando evidências na
 Visão do pipeline mostrando: exposição no S3 → detecção pelo Access Analyzer → alerta com EventBridge + SNS → investigação no CloudTrail → remediação.
 </em></small>
 
-## Por que isso importa para um analista de SOC
+### Por que isso importa para um analista de SOC
 
 A exposição pública de buckets S3 é um problema comum de segurança em nuvem porque pode tornar dados armazenados acessíveis pela internet de forma não intencional.
 
@@ -62,7 +62,7 @@ Do ponto de vista do analista, as principais tarefas são:
 
 Este projeto se concentra exatamente nesse fluxo: detecção, alerta, construção da linha do tempo, atribuição, remediação e validação.
 
-## Configuração incorreta controlada: leitura pública de um objeto de teste
+### Configuração incorreta controlada: leitura pública de um objeto de teste
 
 Criei um bucket descartável e enviei um único arquivo de teste (`dummy.txt`). Em seguida, relaxei intencionalmente o **Block Public Access** e apliquei uma política de bucket concedendo `s3:GetObject` a todos os principals no caminho do objeto de teste.
 
@@ -74,7 +74,7 @@ O bucket se tornou publicamente legível porque o Block Public Access foi desati
 
 > **Observação de SOC:** nenhum conteúdo sensível foi armazenado no bucket; a exposição existiu apenas por um curto período durante o laboratório.
 
-## Detecção: finding do IAM Access Analyzer
+### Detecção: finding do IAM Access Analyzer
 
 O IAM Access Analyzer produziu o principal sinal de detecção deste caso. Ele identificou que o bucket estava acessível publicamente, relacionou a exposição à política do bucket e mostrou que todos os principals possuíam acesso de leitura por meio de `s3:GetObject`.
 
@@ -84,7 +84,7 @@ O IAM Access Analyzer produziu o principal sinal de detecção deste caso. Ele i
 Sinal de detecção: o IAM Access Analyzer marcou o bucket S3 como publicamente acessível, mostrando acesso de leitura público e ativo concedido a todos os principals por meio da política do bucket.
 </em></small>
 
-## Investigação: histórico de eventos do CloudTrail
+### Investigação: histórico de eventos do CloudTrail
 
 Para construir uma linha do tempo defensável do incidente, revisei o **histórico de eventos do CloudTrail** no período próximo à exposição e filtrei por alterações de configuração do S3 que afetavam o bucket.
 
@@ -101,7 +101,7 @@ Procurei por:
 Evidência da investigação: o CloudTrail registra o evento `PutBucketPolicy` com timestamp, ator e bucket S3 afetado, fornecendo uma linha do tempo defensável para a exposição.
 </em></small>
 
-## Alerta: notificação por e-mail com EventBridge + SNS
+### Alerta: notificação por e-mail com EventBridge + SNS
 
 Para tornar o fluxo mais próximo de uma operação real, adicionei uma etapa de alerta para mudanças relacionadas a acesso público no S3.
 
@@ -125,14 +125,14 @@ Configuração do alerta: regra do EventBridge preparada para identificar evento
 Evidência operacional do alerta: e-mail do SNS disparado pelo fluxo CloudTrail → EventBridge após uma alteração `PutBucketPolicy`, mostrando o serviço AWS, a ação de API e o horário do evento.
 </em></small>
 
-## Remediação: revertendo a exposição pública
+### Remediação: revertendo a exposição pública
 
 Correções aplicadas:
 
 - reativei o **Block Public Access**;
 - removi a política pública do bucket.
 
-## Validação: confirmando que o bucket deixou de ser público
+### Validação: confirmando que o bucket deixou de ser público
 
 Após a remediação, verifiquei que:
 
@@ -147,7 +147,7 @@ Após a remediação, verifiquei que:
 Encerramento: após a remediação, o Block Public Access foi restaurado e a política pública foi removida, impedindo novamente a leitura pública do bucket.
 </em></small>
 
-## Checklist resumido de investigação em nuvem
+### Checklist resumido de investigação em nuvem
 
 1. **Confirmar a exposição** no S3 e no Access Analyzer.
 2. **Revisar o alerta** recebido por EventBridge + SNS.

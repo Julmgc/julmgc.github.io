@@ -21,7 +21,7 @@ header:
   image_height: 300px
 ---
 
-## Visão geral
+### Visão geral
 
 Este projeto apresenta um mini laboratório SOC baseado em Proxmox e demonstra um fluxo completo no Wazuh:
 
@@ -36,13 +36,13 @@ Neste laboratório, eu:
 
 **Evidências produzidas:** consultas no Discover, detalhes dos alertas, dashboard de SQL injection, captura com `tcpdump` do tráfego lateral e regras do UFW.
 
-## Por que este cenário é realista para um SOC
+### Por que este cenário é realista para um SOC
 
 - Os alertas são sustentados por **telemetria estruturada da aplicação web**, com logs JSON por requisição, e não apenas por capturas de ferramentas.
 - As detecções foram validadas por meio de consultas no Wazuh Discover, detalhes dos alertas e verificações pontuais, como `tcpdump` e estado do firewall.
 - A contenção considerou o **caminho real do tráfego de rede**, especialmente o tráfego lateral, e foi validada com a repetição do teste e a redução dos alertas.
 
-## Arquitetura do laboratório
+### Arquitetura do laboratório
 
 Implantei **quatro máquinas virtuais** para este projeto:
 
@@ -53,7 +53,7 @@ Implantei **quatro máquinas virtuais** para este projeto:
 
 ![Baseline A - Layout do laboratório no Proxmox](/assets/images/proj-1/PROXMOX-lab-layout.png)
 
-## Topologia de rede relevante para o estudo de caso
+### Topologia de rede relevante para o estudo de caso
 
 Todo o tráfego apresentado foi gerado dentro da VLAN20. O endereço IP de origem observado pelo servidor web corresponde ao host que realmente enviou as requisições HTTP.
 
@@ -65,7 +65,7 @@ Todo o tráfego apresentado foi gerado dentro da VLAN20. O endereço IP de orige
 
 > **Observação de SOC:** em segmentos L2 planos, o tráfego lateral pode não atravessar o firewall. Por esse motivo, a **telemetria do endpoint e da aplicação**, como agente do Wazuh, logs de autenticação e logs da aplicação, torna-se a principal fonte de evidências para investigação e decisões de contenção.
 
-## Telemetria: tornando a aplicação adequada para um SOC
+### Telemetria: tornando a aplicação adequada para um SOC
 
 **Nginx como proxy reverso**
 
@@ -92,7 +92,7 @@ Para produzir sinais úteis para o SOC, implementei logs estruturados em JSON de
 Evidência de telemetria bruta: logs JSON de requisições gravados pela aplicação Flask em <code>/var/log/flaskapp/app.log</code>. O exemplo mostra requisições ao endpoint <code>/search</code> filtradas para validar os campos <code>srcip</code>, <code>path</code>, <code>status</code> e <code>query_string</code> utilizados nas detecções do Wazuh.
 </em></small>
 
-## Engenharia de detecção com regras personalizadas do Wazuh
+### Engenharia de detecção com regras personalizadas do Wazuh
 
 Criei e testei regras personalizadas no arquivo `local_rules.xml` para demonstrar um trabalho prático de engenharia de detecção, indo além da simples instalação das ferramentas.
 
@@ -145,7 +145,7 @@ agent.name:"ubuntu-app" and data.path:"/login" and data.status:401 and data.srci
 - Os campos principais foram `agent.name`, `data.srcip`, `data.path`, `data.status`, `data.app` e `data.method`.
 - Em produção, o próximo ajuste seria gerar um alerta apenas após `N` falhas em `M` minutos por `data.srcip` e excluir scanners internos conhecidos.
 
-## Telemetria de reconhecimento: caminhos sensíveis comuns
+### Telemetria de reconhecimento: caminhos sensíveis comuns
 
 Para simular reconhecimento web automatizado, gerei uma pequena rajada de requisições a caminhos frequentemente procurados durante varreduras, como:
 
@@ -180,7 +180,7 @@ and (data.path:"/wp-login.php" or data.path:"/admin" or data.path:"/.git/config"
 - Respostas `404` isoladas são ruído comum; a diversidade de caminhos é um sinal mais relevante.
 - O próximo ajuste seria alertar com base na combinação entre diversidade de caminhos e taxa de requisições, mantendo uma allowlist para scanners confiáveis.
 
-## Sinal semelhante a SQL injection no endpoint `/search`
+### Sinal semelhante a SQL injection no endpoint `/search`
 
 Para gerar um sinal realista de ataque web, com foco em detecção e não em exploração, enviei um pequeno conjunto de requisições semelhantes a SQL injection para o endpoint interno `/search`, a partir da Jumpbox.
 
@@ -200,7 +200,7 @@ and data.query_string:"q=%27%20OR%201%3D1%20--"
 
 ![Baseline A - SQL injection no Wazuh](/assets/images/proj-1/wazuh-SQLi.png)
 
-## Engenharia de detecção: regra personalizada de alerta
+### Engenharia de detecção: regra personalizada de alerta
 
 O Wazuh já possui uma regra nativa para padrões web relacionados a SQL injection: `31164`, de nível 6.
 
@@ -224,7 +224,7 @@ Abaixo, o alerta correlacionado disparando no Wazuh Discover:
 - A correlação `31164 → 100200` reduz ruído e melhora o roteamento, transformando um indicador de menor confiança em um alerta de prioridade mais alta.
 - O próximo ajuste seria disparar a regra `100200` somente após pelo menos três eventos em dois minutos por `srcip`, reduzindo alertas causados por tentativas isoladas.
 
-## Dashboard de SOC: detecção de SQL injection
+### Dashboard de SOC: detecção de SQL injection
 
 Para tornar a investigação repetível e semelhante a uma operação de SOC, criei um pequeno dashboard no Wazuh focado nos alertas de SQL injection.
 
@@ -236,7 +236,7 @@ O dashboard destaca:
 
 ![Baseline A - Dashboard SOC de ataques web](/assets/images/proj-1/E4-SOC-WEB-ATTACKS.png)
 
-## Ferramenta auxiliar do analista: resumo rápido dos alertas
+### Ferramenta auxiliar do analista: resumo rápido dos alertas
 
 Para acelerar a primeira etapa da triagem, utilizei um pequeno script em Python que resume os logs JSON da aplicação Flask por:
 
@@ -261,7 +261,7 @@ python3 summarize_flask_logs.py /var/log/flaskapp/app.log
 Saída da ferramenta auxiliar: resumo dos principais IPs de origem, caminhos, códigos de status e query strings observados durante a janela de investigação.
 </em></small>
 
-## Hardening e validação: contenção da Jumpbox
+### Hardening e validação: contenção da Jumpbox
 
 Embora tenham sido criadas regras no pfSense (`192.168.20.1`) para restringir o tráfego da Jumpbox, o fluxo HTTP **não atravessava o firewall**.
 
@@ -289,7 +289,7 @@ Após aplicar o controle, repeti a mesma requisição. O resultado foi uma redu�
 - O controle foi implementado no host com uma regra UFW bloqueando `TCP/80` da origem `192.168.20.10`.
 - O resultado foi validado com a repetição do teste, o bloqueio da requisição e a redução dos alertas.
 
-## Mini playbook de SOC
+### Mini playbook de SOC
 
 1. **Definir o escopo:**
 
@@ -301,7 +301,7 @@ Após aplicar o controle, repeti a mesma requisição. O resultado foi uma redu�
 3. **Conter:** bloquear `TCP/80` de `192.168.20.10` na UbuntuApp usando UFW.
 4. **Validar:** repetir a requisição e confirmar a redução posterior nos alertas de `rule.id:100200`.
 
-## Próximas melhorias
+### Próximas melhorias
 
 - Adicionar correlação por limiar, disparando a regra `100200` somente após pelo menos três indicadores de SQL injection em dois minutos por `srcip`.
 - Adicionar rastreamento de requisições com um `request_id` preservado do Nginx até os logs da aplicação.

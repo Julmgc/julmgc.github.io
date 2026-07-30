@@ -21,7 +21,7 @@ author: julia_pt
 
 # DNS Poisoning
 
-## Visão geral
+### Visão geral
 
 Este projeto demonstra **DNS poisoning**, uma técnica que manipula respostas DNS para redirecionar o tráfego de servidores legítimos para destinos controlados por um atacante.
 
@@ -33,7 +33,7 @@ O laboratório foi dividido em três partes:
 
 Todos os testes foram realizados em um laboratório **Proxmox**, usando máquinas virtuais conectadas à mesma bridge virtual.
 
-## Estrutura do laboratório
+### Estrutura do laboratório
 
 | Função               | Hostname         | Descrição                                         |
 | -------------------- | ---------------- | ------------------------------------------------- |
@@ -69,7 +69,7 @@ Quando o usuário tenta acessar um domínio confiável, pode ser redirecionado s
 - respostas DNS duplicadas ou atrasadas;
 - relatos de usuários sobre conteúdo alterado.
 
-## Pré-requisitos
+### Pré-requisitos
 
 Antes de iniciar, prepare:
 
@@ -85,7 +85,7 @@ ipconfig /all
 
 A linha **DNS Servers** deve mostrar somente o endereço IP do Raspberry Pi.
 
-## Baseline A — resolução DNS normal
+### Baseline A — resolução DNS normal
 
 No servidor Ubuntu (`UBUNTU_SERVER`), hospedei um site em `portal.company.local`. Esse hostname foi adicionado ao arquivo `dnsmasq.conf` no servidor DNS Raspberry Pi.
 
@@ -101,7 +101,7 @@ na máquina Windows 10, o endereço IP correto do servidor Ubuntu foi retornado,
 
 ![Baseline A - nslookup do Windows para o Ubuntu](/assets/images/dns-poisoning/BASE_A_NSLOOKUP_W10_TO_UBUNTU_BASE_A.png)
 
-## Baseline B — demonstração de DNS poisoning
+### Baseline B — demonstração de DNS poisoning
 
 Usei o **Bettercap** na máquina Kali para interceptar o tráfego e falsificar respostas DNS dentro do laboratório controlado.
 
@@ -152,7 +152,7 @@ sudo iptables -I FORWARD -p tcp -s DNS_SERVER --sport 53 -d WINDOWS10_VICTIM -j 
 
 Isso impediu que as respostas DNS do Raspberry Pi chegassem à vítima, deixando a resposta falsificada como a única recebida.
 
-## Resultado
+### Resultado
 
 Na `WINDOWS10_VICTIM`, a consulta:
 
@@ -168,7 +168,7 @@ O endereço legítimo do servidor Ubuntu deixou de aparecer, confirmando que o r
 
 O formato IPv6 mapeado observado na resposta também representou uma anomalia de rede que poderia servir como pista durante a investigação.
 
-## Evidências da investigação
+### Evidências da investigação
 
 **Captura no Wireshark das respostas DNS falsificadas**
 
@@ -178,7 +178,7 @@ O formato IPv6 mapeado observado na resposta também representou uma anomalia de
 
 ![Baseline B - ICMP Redirects no Wireshark](/assets/images/dns-poisoning/WIRESHARK_KALI_BASE_B.png)
 
-## Detecção e mitigação
+### Detecção e mitigação
 
 **Detecção**
 
@@ -210,7 +210,7 @@ No Windows, isso pode ser feito por configurações de rede ou pelo Registro, co
 - monitorar anomalias de roteamento e respostas DNS inconsistentes;
 - usar HTTPS e HSTS para reduzir o impacto de redirecionamentos maliciosos.
 
-## Limpeza do laboratório
+### Limpeza do laboratório
 
 Após o teste, reverti as alterações para restaurar o ambiente.
 
@@ -239,7 +239,7 @@ sudo systemctl restart dnsmasq
 
 Após a limpeza, a vítima voltou a resolver `portal.company.local` para o endereço IP legítimo do servidor Ubuntu.
 
-## Como prevenir DNS poisoning
+### Como prevenir DNS poisoning
 
 **Para usuários**
 
@@ -260,7 +260,7 @@ Após a limpeza, a vítima voltou a resolver `portal.company.local` para o ender
 - aplicar **HTTPS + HSTS** nos serviços web;
 - monitorar alterações inesperadas em ARP, DNS e roteamento.
 
-## Conclusão
+### Conclusão
 
 Este laboratório demonstrou, em um ambiente controlado:
 
