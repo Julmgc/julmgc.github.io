@@ -39,7 +39,7 @@ This project evaluates how an LLM can assist with early-stage SOC triage.
 
 I built a small SOC-style lab using **Splunk**, **Sysmon**, **Python**, and the **OpenAI API**. The workflow collects Windows telemetry, extracts alert context, sends structured evidence to an LLM, and compares the AI-generated triage output against manual analyst review.
 
-**GitHub repository:** [AI-ASSISTED-SOC-TRIAGE](https://github.com/Julmgc/AI-ASSISTED-SOC-TRIAGE)
+**GitHub repository:** [AI-ASSISTED-SOC-TRIAGE](https://github.com/Julmgc/AI-ASSISTED-SOC-TRIAGE){: target="\_blank" rel="noopener noreferrer" }
 
 The goal was not to automate final decisions. The goal was to test whether AI can help an analyst move faster while still avoiding unsupported conclusions.
 

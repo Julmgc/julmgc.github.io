@@ -42,7 +42,7 @@ Este projeto avalia como um LLM pode auxiliar nas etapas iniciais da triagem de 
 
 Construí um pequeno laboratório inspirado em um ambiente de SOC usando **Splunk**, **Sysmon**, **Python** e a **API da OpenAI**. O fluxo coleta telemetria do Windows, extrai o contexto dos alertas, envia evidências estruturadas para um LLM e compara a triagem produzida pela IA com a análise manual do analista.
 
-**Repositório no GitHub:** [AI-ASSISTED-SOC-TRIAGE](https://github.com/Julmgc/AI-ASSISTED-SOC-TRIAGE)
+**Repositório no GitHub:** [AI-ASSISTED-SOC-TRIAGE](https://github.com/Julmgc/AI-ASSISTED-SOC-TRIAGE){: target="\_blank" rel="noopener noreferrer" }
 
 O objetivo não era automatizar decisões finais, mas testar se a IA poderia ajudar o analista a trabalhar com mais rapidez sem chegar a conclusões que não fossem sustentadas pelas evidências.
 
