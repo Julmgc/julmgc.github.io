@@ -1,0 +1,25 @@
+julia_en:
+  name: "Julia Clepf"
+  avatar: "/assets/images/avatar.jpeg"
+  bio: "Cybersecurity student with a background in web development."
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/Julmgc"
+
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://linkedin.com/in/SEU-LINK-CORRETO"
+
+julia_pt:
+  name: "Julia Clepf"
+  avatar: "/assets/images/avatar.jpeg"
+  bio: "Desenvolvedora de software em transição para cibersegurança, com foco em operações de SOC e segurança em nuvem."
+  links:
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/Julmgc"
+
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://linkedin.com/in/SEU-LINK-CORRETO"

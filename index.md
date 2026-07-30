@@ -1,5 +1,6 @@
 ---
 layout: splash
+lang: en
 permalink: /
 title: "Julia Clepf Cybersecurity Blog"
 excerpt: "Labs in cybersecurity — hands-on, clear, and always growing."

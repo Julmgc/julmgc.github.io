@@ -2,6 +2,8 @@
 title: "Cloud SOC MVP: Public S3 Exposure Detection, Alerting, and Investigation with Access Analyzer + CloudTrail"
 date: 2026-03-02
 layout: single
+lang: en
+translation_key: cloud-incident-ssrf-imds-cloudtrail-hardening
 author_profile: true
 toc: true
 toc_sticky: true

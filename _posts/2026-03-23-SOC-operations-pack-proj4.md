@@ -2,6 +2,8 @@
 title: "Endpoint Alert Triage: Investigating a Lab-Generated PowerShell Signal with Sysmon + Wazuh"
 date: 2026-03-23
 layout: single
+lang: en
+translation_key: endpoint-alert-triage-powershell-wazuh
 author_profile: true
 toc: true
 toc_sticky: true

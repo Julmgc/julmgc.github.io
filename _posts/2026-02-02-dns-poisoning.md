@@ -2,6 +2,8 @@
 title: "DNS POISONING"
 date: 2026-02-02
 layout: single
+lang: en
+translation_key: dns-poisoning
 categories: [Labs]
 tags: [DNS, Poisoning, MITM, Wireshark]
 excerpt: "Demonstration of DNS poisoning in a controlled lab environment, including analysis, indicators, and mitigation strategies."

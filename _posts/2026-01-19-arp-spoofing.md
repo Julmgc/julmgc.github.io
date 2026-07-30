@@ -2,6 +2,8 @@
 title: "ARP SPOOFING"
 date: 2026-01-19
 layout: single
+lang: en
+translation_key: arp-spoofing
 categories: [Labs]
 tags: [ARP, Spoofing, MITM, Wireshark]
 excerpt: "Demonstration of ARP spoofing (MITM): baseline, attack and mitigations."

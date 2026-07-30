@@ -2,6 +2,8 @@
 title: "LLM-Assisted SOC Triage with Splunk, Sysmon, Python, and OpenAI"
 date: 2026-07-06
 layout: single
+lang: en
+translation_key: llm-assisted-soc-triage
 author_profile: true
 toc: true
 toc_sticky: true

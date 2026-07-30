@@ -108,15 +108,6 @@ html {
   text-align: left !important;
 }
 
-/* Center the welcome section vertically and horizontally */
-.page__content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
 /* Make the welcome text block consistent */
 .welcome-text {
   max-width: 700px;
@@ -189,4 +180,74 @@ html {
 .highlight {
   background-color: #f9fafb;
   border-left: 3px solid #7dd3fc;
+}
+
+.archive__item-title {
+  font-size: 1.45rem;
+  line-height: 1.2;
+  margin-bottom: 0.35rem;
+}
+
+.archive__item-excerpt {
+  font-size: 1rem !important;
+  line-height: 1.55;
+  margin-top: 0.45rem;
+  display: block !important;
+  overflow: visible !important;
+  max-height: none !important;
+  -webkit-line-clamp: unset !important;
+}
+
+.page__meta {
+  font-size: 0.85rem;
+}
+
+.layout--archive .archive__item-title,
+.layout--archive .archive__item-title a {
+  font-size: 1.35rem !important;
+  line-height: 1.2;
+}
+
+/* Página inicial em português */
+body.pt-home .page__title {
+  width: 100%;
+  max-width: 700px;
+  margin: 1.5rem auto 1.75rem;
+  font-size: 1.8rem !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  letter-spacing: normal;
+}
+
+body.pt-home .page__content {
+  width: 100%;
+  max-width: 760px;
+  margin-right: auto;
+  margin-left: auto;
+  align-items: center;
+  text-align: center;
+}
+
+body.pt-home .page__content p {
+  width: 100%;
+  max-width: 700px;
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center !important;
+  text-justify: auto;
+  hyphens: none;
+}
+
+body.pt-home .page__content .btn {
+  align-self: center;
+}
+
+@media (max-width: 600px) {
+  body.pt-home .page__title {
+    font-size: 1.6rem !important;
+  }
+
+  body.pt-home .page__content {
+    font-size: 1.05rem;
+  }
 }

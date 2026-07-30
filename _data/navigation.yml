@@ -11,6 +11,16 @@ main:
   - title: "About"
     url: /about/
 
+main_pt:
+  - title: "Início"
+    url: /pt/
+
+  - title: "Laboratórios"
+    url: /pt/laboratorios/
+
+  - title: "Sobre"
+    url: /pt/sobre/
+
 # Sidebar navigation for content pages
 sidebar:
   - title: "Browse"
