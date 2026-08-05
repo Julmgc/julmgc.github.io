@@ -28,7 +28,13 @@ author_profile: true
 
 <p class="indent" style="text-indent: 2rem;">ARP spoofing happens when an attacker sends forged ARP replies, causing devices to store incorrect IP-to-MAC mappings in their ARP tables. ARP spoofing is commonly used for man-in-the-middle attacks to intercept, read, and/or modify traffic between devices; for session hijacking; for denial-of-service; in combination with DNS poisoning to redirect traffic to fake sites; and to sniff credentials and data.</p>
 
-<p class="indent" style="text-indent: 2rem;">This project demonstrates ARP Spoofing, and talks about how to prevent it. I start by showing normal communication within systems on the same LAN (Baseline A), with packet captures. Then I demonstrate ARP Spoofing (Baseline B) and DNS Poisoning (Baseline C). Finally, I present mitigation techniques to prevent these exploits from happening.</p>
+<p class="indent" style="text-indent: 2rem;">
+This project demonstrates ARP spoofing and explains how an attacker can establish
+a man-in-the-middle position on a local network. I first document normal
+communication between systems on the same LAN, then demonstrate ARP cache
+poisoning and validate the resulting traffic interception. A separate follow-up
+lab uses this MITM position to perform DNS response spoofing.
+</p>
 
 </div>
 <p style="text-align:center"><em>This lab was done using Proxmox, I set up four virtual machines:</em></p>
@@ -132,4 +138,9 @@ ARP spoofing can be mitigated using a combination of host-level, switch-level, a
 - **Encryption & VPNs** — Use **VPNs** and **end-to-end encryption (TLS/HTTPS)** on untrusted networks.
   > While these do not stop ARP spoofing itself, they protect data confidentiality and integrity — making it much harder for an attacker to harvest useful information even if they intercept traffic.
 
----
+## Related Lab
+
+This ARP-based MITM position is used in the following lab to intercept DNS
+queries and inject forged responses:
+
+### [DNS Spoofing via ARP-Based MITM](/labs/dns-spoofing/){: target="\_blank" rel="noopener noreferrer" }

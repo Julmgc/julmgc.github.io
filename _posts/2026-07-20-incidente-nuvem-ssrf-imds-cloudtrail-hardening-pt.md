@@ -1,6 +1,6 @@
 ---
 title: "Investigação de incidente em nuvem: sinal de SSRF → risco no IMDS → linha do tempo no CloudTrail → reforço de segurança"
-date: 2026-03-10
+date: 2026-07-20-
 layout: single
 lang: pt-BR
 translation_key: cloud-incident-ssrf-imds-cloudtrail-hardening

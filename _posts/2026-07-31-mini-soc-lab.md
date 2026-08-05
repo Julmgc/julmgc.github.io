@@ -1,6 +1,6 @@
 ---
 title: "Mini SOC Lab: Web Triage, Detection, and Containment with Wazuh"
-date: 2026-02-16
+date: 2026-07-31
 layout: single
 lang: en
 translation_key: cloud-soc-s3-exposure-access-analyzer-cloudtrail

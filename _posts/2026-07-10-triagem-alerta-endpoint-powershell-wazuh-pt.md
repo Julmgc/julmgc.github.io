@@ -1,6 +1,6 @@
 ---
 title: "Triagem de alertas de endpoint: investigando um sinal de PowerShell gerado em laboratório com Sysmon + Wazuh"
-date: 2026-03-23
+date: 2026-07-10
 layout: single
 lang: pt-BR
 translation_key: endpoint-alert-triage-powershell-wazuh
