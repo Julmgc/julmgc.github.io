@@ -16,6 +16,7 @@ header:
   image_description: "Network cables connected to switches"
   image_height: 300px
 author_profile: true
+author: julia_en
 ---
 
 <em>

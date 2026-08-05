@@ -5,6 +5,7 @@ layout: single
 lang: en
 translation_key: endpoint-alert-triage-powershell-wazuh
 author_profile: true
+author: julia_en
 toc: true
 toc_sticky: true
 categories: [Labs, SOC]

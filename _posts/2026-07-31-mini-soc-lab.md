@@ -3,214 +3,223 @@ title: "Mini SOC Lab: Web Triage, Detection, and Containment with Wazuh"
 date: 2026-07-31
 layout: single
 lang: en
-translation_key: cloud-soc-s3-exposure-access-analyzer-cloudtrail
+translation_key: mini-soc-wazuh-hardening
 author_profile: true
+author: julia_en
+
+sidebar:
+  nav: "sidebar"
+
 toc: true
 toc_sticky: true
 categories: [Labs, SOC]
 tags: [Wazuh, SIEM, pfSense, Proxmox, Detection-Engineering]
-excerpt: "A Proxmox-based mini enterprise lab: segmented network, SOC telemetry (Wazuh + pfSense syslog), custom detections, and hardening."
+excerpt: "A Proxmox-based mini SOC environment with structured telemetry, custom Wazuh detection, suspicious web activity triage, and validated endpoint containment."
 permalink: /labs/mini-soc-wazuh-hardening/
 header:
   teaser: /assets/images/DOOR-AJAR.jpg
   image: /assets/images/DOOR-AJAR.jpg
   overlay_filter: 0.3
   overlay_image: /assets/images/DOOR-AJAR.jpg
-  image_description: "A small crack in trust can open the door to deception — DNS poisoning in action."
+  image_description: "A SOC workflow covering signal generation, detection, triage, containment, and validation."
   image_height: 300px
 ---
 
-## Overview
+### Executive summary
 
-Proxmox-based mini SOC lab demonstrating an end-to-end workflow in Wazuh: **signal → detection → triage → containment → validation**.
+---
 
-In this post, I:
+I built a mini SOC environment in **Proxmox** using Wazuh, pfSense, a Flask application behind Nginx, and a Jumpbox used to generate controlled traffic.
 
-- generated realistic web and auth attack signals in a segmented lab
-- investigated them in Wazuh using structured app telemetry
-- escalated a custom SQLi correlation alert (rule.id:100200)
-- applied host-based containment and validated the result with a clear before/after alert drop
+The lab analyzed three types of activity:
 
-Artifacts: discover queries, alert details, SQLi dashboard, tcpdump evidence of east–west traffic, and UFW rules.
+- repeated authentication failures;
+- web resource reconnaissance;
+- requests containing SQL injection-like patterns.
 
-## Why this is SOC-realistic
+For the SQL injection scenario, I used a built-in Wazuh rule and created local rule `100200` to increase the alert priority.
 
-- Alerts are backed by structured web/app telemetry (JSON request logs), not “tool screenshots.”
-- Detections are validated via Wazuh Discover queries + alert evidence (and spot checks like tcpdump / firewall state), keeping the write-up readable.
-- Containment is based on **network path reality** (east–west traffic), then verified with **replay + alert drop**.
+Containment was applied directly on UbuntuApp with UFW, blocking `TCP/80` connections from the Jumpbox while preserving SSH access for management.
 
-## Lab Architecture
+The demonstrated workflow was:
 
-I deployed **four** VMs for this project:
+> **signal generation → detection → triage → containment → validation**
 
-- **Wazuh (SIEM)** — all-in-one manager + indexer + dashboard
-- **UbuntuApp (Web server)** — Nginx + Flask app + Wazuh agent (web + auth telemetry)
-- **pfSense (Firewall/Gateway)** — segmentation + firewall policy + syslog source
-- **Jumpbox (Bastion / Traffic Generator)** — generated all test traffic from VLAN20 (192.168.20.10)
+### Lab architecture
 
-![Baseline A - PROXMOX-lab-layout](/assets/images/proj-1/PROXMOX-lab-layout.png)
+---
 
-## Network layout (what matters for this case study)
+The environment consisted of four virtual machines:
 
-All traffic shown here was generated inside VLAN20. The source IP observed by the web server is the host that actually issued the HTTP requests.
+| Component     | Role                                               |
+| ------------- | -------------------------------------------------- |
+| **Wazuh**     | All-in-one manager, indexer, and dashboard         |
+| **UbuntuApp** | Nginx, Flask application, and Wazuh agent          |
+| **pfSense**   | Gateway, firewall policies, and syslog source      |
+| **Jumpbox**   | Bastion host and controlled source of test traffic |
 
-- **VLAN20 (192.168.20.0/24)** — internal lab network where the traffic was generated and observed
-  - **Jumpbox (request source / attacker simulator):** `192.168.20.10`
-  - **UbuntuApp (target web server):** `192.168.20.50`
-  - **pfSense (gateway/firewall):** `192.168.20.1`
-  - **Wazuh (SIEM):** alerts indexed in `wazuh-alerts-*`
+![Lab layout in Proxmox](/assets/images/proj-1/PROXMOX-lab-layout.png)
 
-> **SOC note:** In flat L2 segments, “east–west” traffic may not traverse the firewall. For this reason, **endpoint + application telemetry** (Wazuh agent, auth logs, app logs) becomes the primary evidence source for investigation and containment decisions.
+**Relevant topology**
 
-## Telemetry: Making the App SOC-Friendly
+The analyzed traffic was generated inside VLAN20.
 
-**Nginx reverse proxy (context)**
-
-UbuntuApp runs a Flask application behind **Nginx** (reverse proxy). Nginx terminates the client connection and forwards the request to the application service.
-
-**Structured Flask logging (JSON per request)**
-
-To produce SOC-grade signals, I implemented lightweight **structured JSON logging** inside the Flask app:
-
-- 1 JSON event per request (easy to parse/search)
-- includes SOC-relevant fields: srcip, method, path, query_string (truncated), status, duration_ms, user_agent
-- uses rotating logs to prevent unbounded growth
-- correctly records client IP behind Nginx using a single trusted proxy hop
-
-**Log location (UbuntuApp):**
-
-- `/var/log/flaskapp/app.log` (rotated)
-
-![Baseline A - PROXMOX-LAB](/assets/images/proj-1/FLASK-JSON-LOG-EVENTS.png)
-
-<small><em>
-Raw telemetry proof: JSON request logs written by the Flask app (<code>/var/log/flaskapp/app.log</code>).
-Example: <code>/search</code> requests filtered to validate the fields (<code>srcip</code>, <code>path</code>, <code>status</code>, <code>query_string</code>) used in Wazuh detections.
-</em></small>
-
-## Detection Engineering (Custom Wazuh Rules)
-
-I created and tested custom Wazuh rules in `local_rules.xml` to demonstrate real detection-engineering work (not just installing tools).
-
-<a href="https://github.com/Julmgc/detections/blob/main/wazuh/local_rules.xml" target="_blank" rel="noopener noreferrer">
-🔗 Wazuh `local_rules.xml` </a>
-
-## Auth Brute-force signal: /login failures (credential stuffing pattern)
-
-To simulate a realistic auth attack signal, I generated ~20 failed login attempts from the Jumpbox (192.168.20.10) to the UbuntuApp (192.168.20.50). This produces a clear spike of HTTP 401 responses and creates a searchable trail in the SIEM.
-
-**Command (JSON POST) — 20 attempts with a 3s interval (~1 min)**
-
-```bash
-TARGET="http://UbuntuApp_IP"
-for i in $(seq 1 20); do
- curl -s -o /dev/null -w "%{http_code}\n" \
-   -H "Content-Type: application/json" \
-   -X POST "$TARGET/login" \
-   --data '{"username":"demo","password":"wrongpass"}'
- sleep 3
-done
-```
-
-✅ output: repeated **401** responses.
-
-![Baseline A - LOGIN-ATTEMPTS](/assets/images/proj-1/LOGIN-ATTEMPTS.png)
-
-**Wazuh Discover (DQL) — UbuntuApp logs, source = Jumpbox (192.168.20.10)**
-
-“Index: wazuh-alerts-\*”
-
-DQL:
+The Jumpbox acted as the request source, while UbuntuApp was the target web server.
 
 ```text
-agent.name:"ubuntu-app" and data.path:"/login" and data.status:401 and data.srcip:"192.168.20.10" and data.app:"ticketing-lab" and data.method:"POST"
+Jumpbox
+192.168.20.10
+      ↓
+HTTP traffic inside VLAN20
+      ↓
+UbuntuApp
+192.168.20.50
 ```
 
-![Baseline A - WAZUH_COUNT_UP](/assets/images/proj-1/WAZUH_COUNT_UP.png)
+> **SOC note:** because the Jumpbox and UbuntuApp were in the same VLAN, lateral traffic could flow without traversing pfSense. Endpoint and application telemetry were therefore essential for analysis and containment.
 
-Triage notes
+The Flask application generated JSON logs containing the main HTTP request fields, which were later ingested and searched in Wazuh.
 
-- Pattern matches a credential-stuffing burst: repeated 401 from a single source in a short window.
+### Repeated authentication failures
 
-- Key fields: agent.name, data.srcip, data.path, data.status, data.app, data.method.
+---
 
-- Next tuning step (prod): alert only if N failures in M minutes per data.srcip, and exclude known internal scanners.
+From the Jumpbox, I generated approximately 20 failed login attempts against the `/login` endpoint.
 
-## Recon telemetry: common sensitive paths
+![Failed login attempts](/assets/images/proj-1/LOGIN-ATTEMPTS.png)
 
-To emulate automated web recon, I generated a short burst of requests to common sensitive paths (e.g., /wp-login.php, /.git/config, /.env) from Jumpbox to UbuntuApp (192.168.20.50).
+In Wazuh, the query returned 20 `POST /login` events with status `401`, all originating from `192.168.20.10`.
 
-![Baseline A - QUICK BURST](/assets/images/proj-1/QUICK BURST.png)
+![Authentication events filtered in Wazuh Discover](/assets/images/proj-1/WAZUH_COUNT_UP.png)
 
-In Wazuh, this creates a clean recon signal that can be triaged quickly by filtering on data.srcip and data.path.
+The relevant signal was not an isolated `401` response, but repeated failures from the same source within a short time window. In production, the detection should use a threshold grouped by `srcip`.
 
-**Wazuh Discover (DQL) query:**
+### Web resource reconnaissance
 
-```text
-agent.name:"ubuntu-app" and
-data.app:"ticketing-lab"
-and data.event:"http_request"
-and data.srcip:"192.168.20.10"
-and (data.path:"/wp-login.php" or data.path:"/admin" or data.path:"/.git/config" or data.path:"/phpmyadmin" or data.path:"/.env" or data.path:"/server-status")
-```
+---
 
-![Baseline A - wazuh_discover_hits](/assets/images/proj-1/wazuh_discover_hits.png)
+I also generated requests to different sensitive web resources, simulating web reconnaissance activity.
 
-Triage notes
+![Burst of requests to sensitive web resources](/assets/images/proj-1/QUICK BURST.png)
 
-- A burst of requests across multiple sensitive paths within a short window is typical recon behavior. One-off 404s are common noise; path diversity is the stronger signal.
-
-- Next tuning step: alert on path diversity + rate and maintain an allowlist for trusted scanners.
-
-## SQLi-like signal: /search injection patterns → detection + alert
-
-To generate a realistic web-attack signal (detection-focused, not exploitation), I sent a small set of SQLi-like requests to the internal /search endpoint from the Jumpbox host.
-
-![Baseline A - payloads](/assets/images/proj-1/payloads.png)
-
-**Wazuh Discover (DQL) query:**
-
-In Wazuh Discover, I filtered UbuntuApp HTTP logs to confirm the /search requests from the Jumpbox and capture the exact query string payload:
+**DQL query**
 
 ```text
 agent.name:"ubuntu-app"
-data.app:"ticketing-lab"
+and data.app:"ticketing-lab"
+and data.event:"http_request"
+and data.srcip:"192.168.20.10"
+and (
+  data.path:"/wp-login.php"
+  or data.path:"/admin"
+  or data.path:"/.git/config"
+  or data.path:"/phpmyadmin"
+  or data.path:"/.env"
+  or data.path:"/server-status"
+)
+```
+
+![Reconnaissance events filtered in Wazuh Discover](/assets/images/proj-1/wazuh_discover_hits.png)
+
+<p style="font-size: 0.85em; font-style: italic; text-align: center;">
+The query confirmed that a single source accessed multiple sensitive web resources in sequence.
+</p>
+
+Although the responses were `404`, the combined pattern was more relevant than each event in isolation. In production, the detection should consider resource diversity, request rate, and authorized scanners.
+
+### Detecting a SQL injection-like pattern
+
+---
+
+I sent test requests to the `/search` endpoint containing URL-encoded patterns such as:
+
+```text
+' OR 1=1 --
+```
+
+The goal was to generate detectable telemetry in Wazuh without exploiting the application.
+
+![Test requests sent to the search endpoint](/assets/images/proj-1/payloads.png)
+
+To validate ingestion, I filtered one of the submitted strings in Wazuh.
+
+**DQL query**
+
+```text
+agent.name:"ubuntu-app"
+and data.app:"ticketing-lab"
 and data.path:"/search"
 and data.srcip:"192.168.20.10"
 and data.query_string:"q=%27%20OR%201%3D1%20--"
 ```
 
-![Baseline A - wazuh-SQLi](/assets/images/proj-1/wazuh-SQLi.png)
+![SQL injection-like pattern identified in Wazuh](/assets/images/proj-1/wazuh-SQLi.png)
 
-## Detection engineering (custom alert rule on Wazuh Manager):
+<p style="font-size: 0.85em; font-style: italic; text-align: center;">
+The query returned three events because the same request was repeated during the test.
+</p>
 
-Wazuh already includes a built-in web/SQLi rule (`31164`, level 6). To make the signal more SOC-friendly, I added a local correlation rule (`100200`, level 12) that triggers when `31164` fires, escalating severity and tagging it with MITRE `T1190` (Exploit Public-Facing Application).
+### Custom prioritization rule
 
-![Baseline A - RULE.ID-100200-local_rules](/assets/images/proj-1/RULE.ID-100200-local_rules.png)
+---
 
-Below: the correlated alert triggering in Wazuh Discover.
+Wazuh includes a built-in rule for web patterns associated with SQL injection:
 
-![Baseline A - ruleID100200](/assets/images/proj-1/ruleID100200.png)
+```text
+rule.id: 31164
+level: 6
+```
 
-Triage notes
+To increase the visibility of the signal in the lab, I created a local rule that generates a new alert when the built-in rule fires.
 
-- Correlation (31164 → 100200) reduces noise and improves routing: “low confidence indicator” → “high priority alert.”
+```text
+Local rule: 100200
+Level: 12
+Source rule: 31164
+MITRE ATT&CK: T1190 — Exploit Public-Facing Application
+```
 
-- Next tuning step: trigger 100200 only after ≥3 hits in 2 minutes per srcip to reduce one-off probes.
+![Rule 100200 in local_rules.xml](/assets/images/proj-1/RULE.ID-100200-local_rules.png)
 
-## SOC dashboard: SQLi detection (timeline + top sources + top payloads)
+Local rule `100200` generated level `12` alerts, making the signal easier to prioritize in Wazuh.
 
-To make the investigation repeatable and “SOC-style”, I built a small Wazuh dashboard focused on SQLi alerts. It highlights when the spike happened, who generated it (data.srcip = Jumpbox IP), and what payload/URL triggered the detection (data.url).
+![Local rule 100200 alert with level 12 in Wazuh Discover](/assets/images/proj-1/ruleID100200-BACKUP.png)
 
-![Baseline A - E4-SOC-WEB-ATTACKS](/assets/images/proj-1/E4-SOC-WEB-ATTACKS.png)
+**Rule limitation**
 
-## Analyst helper: quick alert summary script
+The demonstrated version generated a new alert for every occurrence of rule `31164`.
 
-To speed up first-pass triage, I used a small Python helper to summarize the Flask JSON logs by top source IPs, request paths, status codes, and query strings.
+In production, it would be more appropriate to apply a time-based threshold grouped by `data.srcip`, while also considering authorized scanners, normal application behavior, and asset criticality.
 
-This made it easier to confirm that one source dominated the event window and that the activity included repeated login failures, recon to sensitive paths, and SQLi-like requests to `/search`.
+### How triage would work in production
 
-🔗 Helper `summarize_flask_logs.py`: [GitHub repository](https://github.com/Julmgc/detections/blob/main/helpers/summarize_flask_logs.py)
+---
+
+In production, triage would begin with the alert generated by rule `100200`:
+
+```text
+agent.name:"ubuntu-app" and rule.id:"100200"
+```
+
+The analyst would validate the source, endpoint, `query_string`, `full_log`, and event frequency.
+
+The activity would then be correlated with other signals from the same source, such as authentication failures, web reconnaissance, and network connections, while also checking whether the activity was authorized.
+
+The objective would be to determine whether the alert represented legitimate activity, an isolated attempt, or part of a broader offensive sequence.
+
+### Triage support resources
+
+---
+
+I created a Wazuh dashboard to visualize alert sources, timestamps, and associated URLs.
+
+![Web attack dashboard](/assets/images/proj-1/E4-SOC-WEB-ATTACKS.png)
+
+I also developed a Python script to summarize IP addresses, endpoints, status codes, and query strings.
+
+<a href="https://github.com/Julmgc/detections/blob/main/helpers/summarize_flask_logs.py" target="_blank" rel="noopener noreferrer">
+summarize_flask_logs.py
+</a>
 
 Example usage:
 
@@ -218,48 +227,43 @@ Example usage:
 python3 summarize_flask_logs.py /var/log/flaskapp/app.log
 ```
 
-![Baseline A - python-triage-summary](/assets/images/proj-1/python-triage-summary.png)
+![Python triage summary](/assets/images/proj-1/python-triage-summary.png)
 
-<small><em>
-Analyst helper output: summary of top source IPs, request paths, status codes, and query strings from the investigation window.
-</em></small>
+The script summarizes application logs by:
 
-## Hardening & validation (Jumpbox containment)
+- top source IP addresses;
+- most frequently accessed endpoints;
+- HTTP status codes;
+- observed query strings.
 
-Although pfSense (`192.168.20.1`) rules were created to restrict Jumpbox traffic, the HTTP flow **did not traverse the firewall**.
+These resources support initial analysis but do not replace validation in Wazuh events and raw application logs.
 
-**Proof (east–west traffic):** a tcpdump capture on **UbuntuApp** shows `TCP/80` packets from `192.168.20.10`(Jumpbox) → `192.168.20.50`(UBUNTUAPP), confirming the flow is **L2-switched inside VLAN20**.
-![Baseline A - jumpbox-ubuntu-curl-traffic](/assets/images/proj-1/jumpbox-ubuntu-curl-traffic.png)
+### Containment and validation
 
-**Control applied (endpoint):** UFW on UbuntuApp blocks `TCP/80` from `192.168.20.10` while keeping SSH open for management.
-![Baseline A - ufw-status](/assets/images/proj-1/ufw-status.png)
+---
 
-**Validation:** replaying the same request after applying the control resulted in a clear post-change drop in `rule.id:100200` SQL injection alerts.
-![Baseline A - wazuh-dashboard-SQLi](/assets/images/proj-1/wazuh-dashboard-SQLi.png)
+Because the Jumpbox and UbuntuApp were in the same VLAN, the test requests were sent directly between the two machines without traversing pfSense.
 
-Evidence chain (what I validated)
+I therefore applied containment directly on UbuntuApp with UFW, blocking `TCP/80` connections originating from `192.168.20.10`.
 
-- Alert triggered (rule.id:100200)
+SSH access remained available for virtual machine management.
 
-- Confirmed request evidence in telemetry (data.url / full_log)
+![UFW containment rule](/assets/images/proj-1/ufw-status.png)
 
-- Confirmed path reality (east–west traffic via tcpdump)
+After applying the UFW rule, I validated connectivity from the Jumpbox.
 
-- Implemented control (UFW deny TCP/80 from 192.168.20.10)
+![Port 80 block validation with Nmap and Netcat](/assets/images/proj-1/ufw-port-80-validation.png)
 
-- Verified outcome (replay blocked + post-change alert drop)
+Nmap showed that `22/tcp` remained open for SSH, while `80/tcp` appeared as `filtered`. The additional Netcat test also timed out on port 80.
 
-## Mini SOC playbook (TL;DR)
+These results confirmed that management access was preserved while HTTP connections from the Jumpbox were blocked.
 
-1. **Scope:** `agent.name:"ubuntu-app" and rule.id:"100200"`
-2. **Attribution + payload:** check `data.srcip` + `data.url`
-3. **Containment:** block `TCP/80` from `192.168.20.10` on UbuntuApp (UFW)
-4. **Validation:** replay request + verify post-change drop in `rule.id:100200`
+### Conclusion
 
-## What I’d improve next
+---
 
-- Add threshold correlation: fire 100200 only after ≥3 SQLi indicators in 2 minutes per srcip (noise reduction).
+The lab integrated structured telemetry, Wazuh detection, alert analysis, and selective endpoint containment.
 
-- Add request tracing: include a request_id that survives Nginx → app logs for faster investigations.
+Validation showed that `80/tcp` was filtered for the Jumpbox while SSH access remained available for management.
 
-- Enforce gateway controls: split Jumpbox and UbuntuApp into separate VLANs to compare host vs network containment.
+As next steps, the application could incorporate parameterized queries, input validation, HTTPS, least privilege, and time-based alert correlation.

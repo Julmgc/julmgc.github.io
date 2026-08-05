@@ -5,6 +5,7 @@ layout: single
 lang: en
 translation_key: llm-assisted-soc-triage
 author_profile: true
+author: julia_en
 toc: true
 toc_sticky: true
 categories: [Labs, SOC, AI-Security]

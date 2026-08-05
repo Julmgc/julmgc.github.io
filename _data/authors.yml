@@ -1,7 +1,7 @@
 julia_en:
   name: "Julia Clepf"
   avatar: "/assets/images/avatar.jpeg"
-  bio: "Cybersecurity student with a background in web development."
+  bio: "Software developer transitioning into cybersecurity, focused on SOC operations and cloud security."
   links:
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
