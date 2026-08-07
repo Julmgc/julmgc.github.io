@@ -274,3 +274,15 @@ body.pt-home .page__content .btn {
   word-break: normal !important;
   overflow-wrap: normal !important;
 }
+
+.page__hero--overlay .page__lead {
+  text-align: justify !important;
+
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  hyphens: none !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
