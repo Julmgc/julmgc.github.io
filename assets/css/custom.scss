@@ -56,7 +56,9 @@
 .lab-link {
   color: #0056b3;
   text-decoration: none;
-  transition: color 0.2s ease, text-shadow 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
 .lab-link:hover {
