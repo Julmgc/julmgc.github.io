@@ -1,9 +1,9 @@
 ---
-title: "Cloud SOC MVP: Public S3 Exposure Detection, Alerting, and Investigation with Access Analyzer + CloudTrail"
+title: "Public S3 Exposure with Access Analyzer and CloudTrail"
 date: 2026-03-02
 layout: single
 lang: en
-translation_key: cloud-incident-ssrf-imds-cloudtrail-hardening
+translation_key: cloud-soc-s3-exposure-access-analyzer-cloudtrail
 author_profile: true
 author: julia_en
 toc: true
@@ -20,130 +20,94 @@ tags:
     Incident-Response,
     Cloud-Security,
   ]
-excerpt: "A cloud case: intentionally exposed an S3 bucket, detected it with IAM Access Analyzer, triggered an EventBridge + SNS alert, investigated the change with CloudTrail, and remediated it by restoring Block Public Access and removing the public bucket policy."
+excerpt: "A cloud security lab to detect, investigate, and remediate public S3 exposure using Access Analyzer, CloudTrail, EventBridge, and SNS."
 permalink: /labs/cloud-soc-s3-exposure-access-analyzer-cloudtrail/
 header:
   teaser: /assets/images/DOOR-AJAR.jpg
   image: /assets/images/DOOR-AJAR.jpg
   overlay_filter: 0.3
   overlay_image: /assets/images/DOOR-AJAR.jpg
-  image_description: "A small crack in trust can open the door to deception — DNS poisoning in action."
+  image_description: "A workflow for detecting, investigating, alerting on, and remediating public exposure in Amazon S3."
   image_height: 300px
 ---
 
-## Overview
+### Project summary
 
-This project demonstrates a focused cloud investigation workflow using AWS-native evidence:
+In this lab, I created a controlled public exposure in an S3 bucket and used AWS-native services to detect the insecure configuration, investigate the change, generate an alert, and restore the bucket to a secure state.
 
-- created a controlled **public S3 exposure** using a disposable bucket and dummy object
-- detected the issue with **IAM Access Analyzer**
-- configured **EventBridge + SNS** to send an email alert for S3 public-access-related changes
-- investigated the change in **CloudTrail Event history** to confirm **what changed, when, and by which identity**
-- remediated the exposure by restoring **Block Public Access** and removing the public bucket policy
-- validated that the bucket was no longer publicly accessible
+**IAM Access Analyzer** identified the exposure, **CloudTrail** provided the change history, and **EventBridge + SNS** generated an email notification.
 
-![Proj-2A - Architecture - aws-to-soc-pipeline](/assets/images/proj-2/ARCH-aws-to-soc.png)
+![AWS security workflow architecture](/assets/images/proj-2/RESUMO-DO-PROJ.png)
 
-<small><em>
-A pipeline view showing S3 exposure → Access Analyzer detection → EventBridge + SNS alerting → CloudTrail investigation → remediation.
-</em></small>
+### Controlled public exposure
 
-## Why this matters to a SOC analyst
+I created a disposable bucket containing only a test file (`dummy.txt`).
 
-Public S3 exposure is a common cloud security issue because it can unintentionally make stored data reachable from the internet. From an analyst perspective, the key tasks are to confirm the exposure, identify what control caused it, determine who made the change, ensure the team is notified quickly enough to respond, and verify that the risky state was fully removed.
+I then temporarily disabled the relevant **Block Public Access** protections and applied a bucket policy allowing public `s3:GetObject` access to the test object.
 
-This project focuses on that workflow using AWS-native evidence: detection, alerting, timeline building, attribution, remediation, and validation.
+![S3 permissions showing the public exposure](/assets/images/proj-2/S3-public-permissions.png)
 
-## Misconfiguration (controlled): public read on a dummy object
+No sensitive data was stored in the bucket during the lab.
 
-I created a disposable bucket and uploaded a single dummy file (`dummy.txt`). I then intentionally relaxed **Block Public Access** and applied a bucket policy granting `s3:GetObject` to all principals for the dummy object path.
+### Detection with IAM Access Analyzer
 
-![Proj-2A - S3 permissions showing public exposure](/assets/images/proj-2/S3-public-permissions.png)
+**IAM Access Analyzer** identified that the bucket was publicly accessible.
 
-<small><em>
-The bucket became publicly readable because Block Public Access was disabled and the bucket policy granted `s3:GetObject` to all principals.
-</em></small>
+The finding showed that the exposure was caused by the bucket policy and that public read access was available through `s3:GetObject`.
 
-> **SOC note:** no sensitive content was ever stored in the bucket; exposure existed only briefly for the lab.
+![IAM Access Analyzer finding showing public S3 exposure](/assets/images/proj-2/AA-public-bucket-finding.png)
 
-## Detection: IAM Access Analyzer finding (cloud-native signal)
+The finding confirmed that the bucket was publicly exposed through the configured policy.
 
-IAM Access Analyzer produced the primary detection signal for this case. It identified that the bucket was publicly accessible, linked the exposure to the bucket policy, and showed that all principals had read access through `s3:GetObject`.
+### Investigation with CloudTrail
 
-![Proj-2A - Access Analyzer finding for public S3 exposure](/assets/images/proj-2/AA-public-bucket-finding.png)
+After detection, I reviewed **CloudTrail** to confirm the change that caused the public exposure.
 
-<small><em>
-Detection signal — IAM Access Analyzer flagged the S3 bucket as publicly accessible, showing active public read access granted to all principals through the bucket policy.
-</em></small>
+Because the insecure configuration had been introduced through the bucket policy, I located the `PutBucketPolicy` event and reviewed the timestamp, the identity responsible for the API call, and the affected resource.
 
-## Investigation: CloudTrail Event history (who changed what, when)
+![CloudTrail evidence of the S3 bucket policy change](/assets/images/proj-2/CT-s3-policy-change.png)
 
-To build a defensible incident timeline, I reviewed **CloudTrail Event history** around the exposure window and filtered for S3 configuration changes affecting the bucket.
+The event confirmed the policy change and made it possible to associate the modification with the identity that performed the API call.
 
-What I looked for:
+### Alerting with EventBridge + SNS
 
-- bucket policy changes (`PutBucketPolicy` / `DeleteBucketPolicy`)
-- public access block changes (`PutPublicAccessBlock` / `DeletePublicAccessBlock`)
-- identity context (who performed the action)
-- evidence supporting what changed and when
+In addition to the Access Analyzer detection, I configured an alerting workflow for changes related to public S3 access.
 
-![Proj-2A - CloudTrail evidence of S3 policy/public access change](/assets/images/proj-2/CT-s3-policy-change.png)
+A **CloudTrail trail** recorded management events, **EventBridge** filtered relevant S3 configuration changes, and **SNS** sent an email notification.
+
+![EventBridge rule for S3 access-related changes](/assets/images/proj-2/EVB-s3-public-alert-rule.png)
 
 <small><em>
-Investigation proof — CloudTrail records the `PutBucketPolicy` event with the timestamp, actor, and affected S3 bucket, providing a defensible timeline for the exposure.
+EventBridge rule configured to capture CloudTrail events related to bucket policy and Block Public Access changes.
 </em></small>
 
-## Alerting: EventBridge + SNS email notification
-
-To make the workflow more operationally realistic, I added an alerting step for S3 public-access-related changes.
-
-For this lab, the alerting flow was:
-
-- an active **CloudTrail trail** recorded S3 management events
-- **EventBridge** matched configuration changes related to public exposure
-- **SNS** sent an email notification with the affected bucket, API action, and event time
-
-This added an operational monitoring layer to the workflow: the risky change was not only discoverable in AWS tools, but also actively notified as it happened.
-
-![Proj-2A - EventBridge rule for S3 change alerting](/assets/images/proj-2/EVB-s3-public-alert-rule.png)
+![SNS email notification](/assets/images/proj-2/SNS-s3-alert-email.png)
 
 <small><em>
-Alerting setup — EventBridge rule configured to match CloudTrail management events for S3 policy and public access block changes related to public exposure.
+SNS notification generated after a `PutBucketPolicy` event, including the API action, event time, identity, and affected bucket details.
 </em></small>
 
-![Proj-2A - SNS email alert for S3 public-access change](/assets/images/proj-2/SNS-s3-alert-email.png)
+The notification exposed the API action, event time, and context of the recorded change.
+
+### Remediation and validation
+
+To remediate the exposure:
+
+- I re-enabled **Block Public Access**;
+- I removed the public bucket policy.
+
+After remediation, I validated that the bucket no longer allowed public read access and that the insecure configuration had been removed.
+
+![S3 bucket after remediation](/assets/images/proj-2/S3-remediated.png)
 
 <small><em>
-Operational alert proof — SNS email triggered by the CloudTrail → EventBridge workflow after a `PutBucketPolicy` change, showing the AWS service, API action, and event time.
+Post-remediation validation: Block Public Access is enabled and the public bucket policy has been removed.
 </em></small>
 
-## Remediation: rollback the public exposure
+### Conclusion
 
-Fix applied:
+The lab integrated AWS-native services to detect, investigate, and remediate public exposure in S3.
 
-- re-enabled **Block Public Access**
-- removed the public bucket policy
+**IAM Access Analyzer** identified the exposure, **CloudTrail** provided the change history and responsible identity, and **EventBridge + SNS** converted the configuration change into a notification.
 
-## Validation: confirm the bucket is no longer public
-
-After remediation, I verified that:
-
-- **Block Public Access** was restored
-- the public bucket policy was removed
-- the bucket no longer allowed public read access
-- the risky configuration state was no longer present
-
-![Proj-2A - S3 remediated (public access removed)](/assets/images/proj-2/S3-remediated.png)
-
-<small><em>
-Closure — after remediation, Block Public Access was restored and the public bucket policy was removed, so the bucket no longer allowed public read access.
-</em></small>
-
-## Mini cloud investigation checklist (TL;DR)
-
-1. **Confirm the exposure** in S3 and Access Analyzer
-2. **Review the alert** from EventBridge + SNS
-3. **Build the timeline** in CloudTrail
-4. **Attribute the change** to the responsible identity and timestamp
-5. **Remediate** by restoring Block Public Access and removing the public policy
-6. **Validate** that the bucket is no longer publicly accessible
+After remediation, I validated that **Block Public Access** was enabled again and that the public bucket policy had been removed.
