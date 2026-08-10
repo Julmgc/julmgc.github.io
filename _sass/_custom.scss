@@ -162,7 +162,6 @@ html {
   text-align: center;
 }
 
-/* Keep your welcome text nicely sized and centered */
 .welcome-text {
   max-width: 700px;
   margin: 2rem auto;
@@ -285,4 +284,42 @@ body.pt-home .page__content .btn {
 
   word-break: normal !important;
   overflow-wrap: normal !important;
+}
+
+.language-spl {
+  font-size: 0.6em;
+}
+
+/* JSON/code syntax highlighting */
+.highlight,
+.highlight pre,
+.highlight code {
+  color: #000 !important;
+}
+
+/* Strings */
+.highlight .sb,
+.highlight .sc,
+.highlight .sd,
+.highlight .se,
+.highlight .sh,
+.highlight .si,
+.highlight .sx {
+  color: #003366 !important;
+}
+
+/* Property names / attributes */
+.highlight .na,
+.highlight .nt {
+  color: #000 !important;
+}
+
+.highlight span {
+  color: #000 !important;
+}
+
+.highlight .s,
+.highlight .s1,
+.highlight .s2 {
+  color: #003366 !important;
 }
