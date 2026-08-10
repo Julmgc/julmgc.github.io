@@ -1,147 +1,165 @@
 ---
-title: "ARP SPOOFING"
+title: "ARP Spoofing: Validating a MITM Scenario in a Lab"
 date: 2026-01-19
 layout: single
 lang: en
 translation_key: arp-spoofing
 categories: [Labs]
 tags: [ARP, Spoofing, MITM, Wireshark]
-excerpt: "Demonstration of ARP spoofing (MITM): baseline, attack and mitigations."
+excerpt: "ARP spoofing lab in an isolated network, validating a man-in-the-middle position through ARP tables, tcpdump, and Wireshark."
 permalink: /labs/arp-spoofing/
 header:
   teaser: /assets/images/arp-spoofing/arp-spoofing-header.jpg
   image: /assets/images/arp-spoofing/arp-spoofing-header.jpg
   overlay_filter: 0.3
   overlay_image: /assets/images/arp-spoofing/arp-spoofing-header.jpg
-  image_description: "Network cables connected to switches"
+  image_description: "Network cables connected to switches."
   image_height: 300px
 author_profile: true
 author: julia_en
 ---
 
 <em>
-**Important - This technique is for educational purposes only. It was executed in a private lab environment. Performing this on a network without explicit permission is illegal and unethical. Real artifacts are available to recruiters and educators on request.**</em>
+<strong>Important:</strong> this test was performed exclusively in a private and controlled lab network.
+</em>
 
-## What is ARP Spoofing?
+### Project summary
 
-<div class="justify-text">
-<p class="indent" style="text-indent: 2rem;">ARP (Address Resolution Protocol) is a network protocol that maps MAC addresses (unique computer or device identifiers) to IP addresses. Networks maintain an ARP table — a database that connects MAC addresses to IP addresses. </p>
+In this lab, I tested how manipulating **IP-to-MAC associations** through ARP spoofing can change the traffic path inside a local network.
 
-<p class="indent" style="text-indent: 2rem;">ARP spoofing happens when an attacker sends forged ARP replies, causing devices to store incorrect IP-to-MAC mappings in their ARP tables. ARP spoofing is commonly used for man-in-the-middle attacks to intercept, read, and/or modify traffic between devices; for session hijacking; for denial-of-service; in combination with DNS poisoning to redirect traffic to fake sites; and to sniff credentials and data.</p>
+The environment was built in **Proxmox**, and the man-in-the-middle position was validated using:
 
-<p class="indent" style="text-indent: 2rem;">
-This project demonstrates ARP spoofing and explains how an attacker can establish
-a man-in-the-middle position on a local network. I first document normal
-communication between systems on the same LAN, then demonstrate ARP cache
-poisoning and validate the resulting traffic interception. A separate follow-up
-lab uses this MITM position to perform DNS response spoofing.
-</p>
+- ARP tables;
+- `tcpdump`;
+- Wireshark.
 
-</div>
-<p style="text-align:center"><em>This lab was done using Proxmox, I set up four virtual machines:</em></p>
+> This lab establishes the MITM position only. A separate project uses that position to test DNS spoofing.
+>
+> [DNS Spoofing via ARP-Based MITM](/labs/dns-spoofing/){: target="\_blank" rel="noopener noreferrer" }
 
-<h4>OPSEC legend (labels replace real addresses):</h4>
+### Lab environment
 
-<ul class="opsec-list">
-  <li><span class="label"><strong>WINDOWS10_VICTIM</strong></span><span class="arrow">→</span><span class="desc">Windows 10 test target</span></li>
-  <li><span class="label"><strong>KALI_ATTACKER</strong></span><span class="arrow">→</span><span class="desc">Kali attacker</span></li>
-  <li><span class="label"><strong>DNS_SERVER</strong></span><span class="arrow">→</span><span class="desc">Raspberry Pi (local DNS)</span></li>
-  <li><span class="label"><strong>UBUNTU_SERVER</strong></span><span class="arrow">→</span><span class="desc">Ubuntu server (file/web services)</span></li>
-</ul>
+The three systems involved in the test were connected to the same virtual bridge and subnet, allowing direct Layer 2 communication.
 
----
+| System               | Role                       |
+| -------------------- | -------------------------- |
+| **WINDOWS10_VICTIM** | Windows 10 client          |
+| **KALI_ATTACKER**    | Host used for ARP spoofing |
+| **UBUNTU_SERVER**    | Legitimate server          |
 
-## BASELINE A - everything working normally (no ARP spoofing)
+A `DNS_SERVER` was also part of the environment for DNS resolution testing.
 
-<p class="indent" style="text-indent: 2rem;">Windows client, <strong>WINDOWS10_VICTIM</strong> browses the address `ubuntu.lab`, which is hosted on <strong>UBUNTU_SERVER</strong>. The client resolves the name using the local DNS resolver, <strong>DNS_SERVER</strong>, and then connects to the server. The screenshot below shows the DNS response from <strong>DNS_SERVER</strong>, which returns an A record pointing to <strong>UBUNTU_SERVER</strong> on Wireshark. Filter used:</p>
+All systems were hosted in a private and isolated lab network. Real addresses were replaced with identifiers in the post.
 
-dns.qry.name == "ubuntu.lab"
+### Baseline
 
-![Baseline A - WIRESHARK screenshot](/assets/images/arp-spoofing/BASE_A_WIRESHARK_DNS.png)
+Before the test, I validated that communication between `WINDOWS10_VICTIM` and `UBUNTU_SERVER` occurred directly and that the ARP mappings pointed to the legitimate MAC addresses.
 
-<p class="indent" style="text-indent: 2rem;">When <strong>WINDOWS10_VICTIM</strong> runs `nslookup ubuntu.lab`, the DNS query is handled by <strong>DNS_SERVER</strong>, which replies with the legitimate <strong>UBUNTU_SERVER</strong> IP address.</p>
-
-![Baseline A — nslookup ubuntu.lab](/assets/images/arp-spoofing/BASE_A_WINDOWS_NSLOOKUP.png)
-
----
-
-## BASELINE B — ARP SPOOFING (Man-in-the-Middle lab)
-
-**What is the actual damage an attacker can do once inside a network with ARP spoofing?**
-
-![Baseline B — MITM topology](/assets/images/arp-spoofing/FINAL_BASE_B_SYSTEMS.png)
-ARP spoofing (MITM): **KALI_ATTACKER** poisons both endpoints’ ARP caches so traffic between **WINDOWS10_VICTIM** and **UBUNTU_SERVER** flows through the attacker.
-
-<p class="indent" style="text-indent: 2rem;">All virtual machines are connected on the same virtual network bridge within Proxmox. During this phase, ARP spoofing was performed so that both <strong>WINDOWS10_VICTIM</strong> and <strong>UBUNTU_SERVER</strong> resolved each other’s MAC address to the <strong>KALI_ATTACKER</strong> interface. As a result, all network traffic between the two legitimate hosts was transparently relayed through <strong>KALI_ATTACKER</strong>, creating a MITM (Man-in-the-Middle) scenario.</p>
-
-<p class="indent" style="text-indent: 2rem;"> To execute ARP spoofing on <strong>KALI_ATTACKER</strong> and poison the LAN, we use the tool <code>arpspoof</code> from the <code>dsniff</code> package. It is simple and effective.</p>
-
-Open two separate terminal windows in Kali.
-
-- **Terminal 1: Poison the Windows VM's ARP table.** Tell Windows that the Ubuntu server’s IP is at Kali’s MAC address.
-
-```bash
-arpspoof -i eth0 -t WINDOWS10_VICTIM_IP UBUNTU_SERVER_IP
+```text
+WINDOWS10_VICTIM ←→ UBUNTU_SERVER
 ```
 
--i eth0: Your Kali's network interface (use ip a to find it, it might be ens18 or similar).
+I also confirmed that `ubuntu.lab` resolved to the correct server address.
 
--t <strong>WINDOWS10_VICTIM_IP</strong>: The target (victim) IP, the Windows machine.
+![Baseline — ubuntu.lab resolution from Windows](/assets/images/arp-spoofing/BASE_A_WINDOWS_NSLOOKUP.png)
 
-<strong>UBUNTU_SERVER_IP</strong>: The host's IP you want to impersonate to the target (the server).
+This state was used as a reference for comparing the evidence collected after the ARP tables were modified.
 
-- **Terminal 2: Poison the Ubuntu Server's ARP table.** Tell the Ubuntu Server that the Windows IP is at Kali's MAC address.
+### Controlled ARP spoofing execution
 
-```bash
-arpspoof -i eth0 -t UBUNTU_SERVER_IP WINDOWS10_VICTIM_IP
+To alter the traffic path, I used `arpspoof` on the Kali system against both endpoints.
+
+The goal was to modify the ARP mappings in both directions:
+
+```text
+WINDOWS10_VICTIM
+Server IP → Kali MAC
+
+UBUNTU_SERVER
+Victim IP → Kali MAC
 ```
 
-<p class="indent" style="text-indent: 2rem;">At this point, the MITM is active. Traffic from Windows to Ubuntu, and vice versa, is now flowing through your Kali machine. You can verify this by looking at the ARP table on the Windows machine (arp -a in cmd) – you should see the Ubuntu Server's IP address mapped to Kali's MAC address.</p>
+On Kali, I ran one `arpspoof` instance for each endpoint:
 
-![Baseline B — ARP UBUNTU](/assets/images/arp-spoofing/BASE_B_UBUNTU_ARP_2.png)
+```bash
+sudo arpspoof -i eth0 -t WINDOWS10_VICTIM_IP UBUNTU_SERVER_IP
+```
 
-<p class="indent" style="text-indent: 2rem;">The <strong>WINDOWS10_VICTIM_IP</strong> ARP table demonstrates the same poisoning observed on the server: both the server's and attacker's IPs are associated with the <strong>KALI_ATTACKER MAC address</strong> in the victim's ARP cache. This confirms that <strong>WINDOWS10_VICTIM</strong> has been tricked into sending frames for the server to the attacker. </p>
+```bash
+sudo arpspoof -i eth0 -t UBUNTU_SERVER_IP WINDOWS10_VICTIM_IP
+```
 
-![Baseline B — ARP WINDOWS](/assets/images/arp-spoofing/BASE_B_ARP_WINDOWS.png)
+The first process caused the Windows client to associate the server IP with Kali's MAC address. The second caused the Ubuntu server to associate the victim IP with the same Kali MAC address.
 
-<p class="indent" style="text-indent: 2rem;">Now we can observe the <strong>WINDOWS10_VICTIM’s</strong> HTTP GET and the server’s HTTP/200 response being forwarded with tcpdump on the <strong>KALI_ATTACKER VM.</strong> These packets demonstrate that the attacker is transparently relaying traffic between the victim and server. .</p>
+With both mappings changed, the traffic path changed from:
 
-<p class="indent" style="text-indent: 2rem;">Note that the IP headers show src=<strong>WINDOWS10_VICTIM</strong> and dst=<strong>UBUNTU_SERVER</strong>, but the Ethernet frames are received by the attacker. This confirms that traffic is being intercepted and relayed (MITM) while preserving the original IP/TCP endpoints.</p>
+```text
+WINDOWS10_VICTIM ←→ UBUNTU_SERVER
+```
 
-![Baseline B — TCPDUMP KALI](/assets/images/arp-spoofing/BASE_B_KALI_ATTACKER_TCP_DUMP_ARP_SPOOFING.png)
+to:
 
-<p class="indent" style="text-indent: 2rem;">The Wireshark capture on <strong>KALI_ATTACKER</strong> also shows an ICMP redirect captured on the attacker. ICMP redirect messages indicate routing/forwarding changes. In this context, demonstrate additional network-layer side effects of the poisoning — e.g., hosts receiving route notices or the attacker's role in modifying traffic paths. Use this capture to explain how the network perceives the changed link-layer topology.</p>
+```text
+WINDOWS10_VICTIM
+        ↓
+KALI_ATTACKER
+        ↓
+UBUNTU_SERVER
+```
 
-![Baseline B — WIRESHARK WINDOWS](/assets/images/arp-spoofing/BASE_B_WIN10_WIRESHARK_ARP.png)
+The IP endpoints remained unchanged; the modification occurred in Layer 2 forwarding.
 
-## 🛡️ How to Prevent ARP Spoofing
+### Validation through ARP tables
 
-- Enable **DHCP snooping** on switches.
-- Use **ARP monitoring tools** such as _Arpwatch_ or _ARPScan_.
-- Configure **static ARP entries** for critical systems.
+The first evidence came from the ARP tables on both endpoints.
 
-### Defense Strategies
+On Ubuntu, the Windows system's IP address became associated with Kali's MAC address.
 
-ARP spoofing can be mitigated using a combination of host-level, switch-level, and network-layer protections:
+![ARP table on Ubuntu after the change](/assets/images/arp-spoofing/BASE_B_UBUNTU_ARP_2.png)
 
-- **Static ARP Entries** — Pin IP→MAC mappings for critical hosts (such as gateways and important servers) to prevent unauthorized changes.
+On Windows, the Ubuntu server IP became associated with the MAC address of `KALI_ATTACKER`.
 
-- **Host Hardening (Linux)** — Use tools like **ArpON** or kernel-level filtering with **arptables** to validate and block suspicious ARP activity.
+![ARP table on Windows after the change](/assets/images/arp-spoofing/BASE_B_ARP_WINDOWS.png)
 
-- **Windows Protection** — On Windows endpoints, tools like **XArp** can detect, block, and alert on spoofing attempts.
+Together, the two tables showed:
 
-- **Network Monitoring** — Run an ARP monitoring or notification service (for example, _Arpwatch_ or _Arpalert_) to detect unexpected IP↔MAC mapping changes.
+```text
+Windows: Server IP → Kali MAC
+Ubuntu:  Victim IP → Kali MAC
+```
 
-- **Switch-Level Security** — Enable **Dynamic ARP Inspection (DAI)** together with **DHCP snooping** and **port security** on managed switches to automatically drop forged ARP frames at Layer 2.
+These mappings showed that both endpoints were sending frames to Kali that would normally have been delivered directly to each other.
 
-- **Network IDS/IPS** — Deploy intrusion detection or prevention systems such as **Snort** or **Suricata** to identify abnormal ARP traffic patterns and forward alerts to your **SIEM** or logging system.
+### Interception validation
 
-- **Encryption & VPNs** — Use **VPNs** and **end-to-end encryption (TLS/HTTPS)** on untrusted networks.
-  > While these do not stop ARP spoofing itself, they protect data confidentiality and integrity — making it much harder for an attacker to harvest useful information even if they intercept traffic.
+After modifying the ARP tables, I observed the traffic on Kali's network interface with `tcpdump`.
 
-## Related Lab
+The capture showed:
 
-This ARP-based MITM position is used in the following lab to intercept DNS
-queries and inject forged responses:
+- an HTTP request sent by `WINDOWS10_VICTIM`;
+- the HTTP `200` response from `UBUNTU_SERVER`;
+- the packets traversing the interface of `KALI_ATTACKER`.
 
-### [DNS Spoofing via ARP-Based MITM](/labs/dns-spoofing/){: target="\_blank" rel="noopener noreferrer" }
+![Traffic observed on Kali with tcpdump](/assets/images/arp-spoofing/BASE_B_KALI_ATTACKER_TCP_DUMP_ARP_SPOOFING.png)
+
+The IP addresses still identified the victim and server as the communication endpoints. The change was in the Layer 2 path:
+
+```text
+IP:  WINDOWS10_VICTIM → UBUNTU_SERVER
+MAC: WINDOWS10_VICTIM → KALI_ATTACKER → UBUNTU_SERVER
+```
+
+This confirmed that Kali was participating in the traffic path rather than only observing broadcast traffic on the network.
+
+### Conclusion
+
+The lab showed how changes to **IP-to-MAC mappings** can modify the Layer 2 traffic path without changing the IP endpoints of the communication.
+
+The MITM position was validated through two main pieces of evidence:
+
+- the endpoints' ARP tables associated the legitimate IP addresses with Kali's MAC address;
+- traffic between the victim and server was observed traversing the intermediate Kali interface.
+
+From a defensive perspective, unexpected IP-to-MAC changes, multiple IP addresses mapping to the same MAC, and traffic traversing an unexpected host are signals that can be correlated with ARP tables, packet captures, and switch telemetry.
+
+Controls such as **DHCP snooping**, **Dynamic ARP Inspection (DAI)**, and network segmentation can help prevent or limit this behavior, while encrypted protocols such as **HTTPS and SSH** reduce the impact if traffic is intercepted.
