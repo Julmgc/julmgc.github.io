@@ -17,7 +17,7 @@ header:
   image_height: 300px
 author_profile: true
 author: julia_pt
-
+published: false
 sidebar:
   nav: "sidebar_pt"
 ---
