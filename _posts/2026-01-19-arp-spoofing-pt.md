@@ -19,6 +19,7 @@ author_profile: true
 author: julia_pt
 sidebar:
   nav: "sidebar_pt"
+published: false
 ---
 
 <em>
@@ -64,8 +65,6 @@ WINDOWS10_VICTIM ←→ UBUNTU_SERVER
 Também confirmei que `ubuntu.lab` resolvia para o endereço correto do servidor.
 
 ![Baseline — resolução de ubuntu.lab no Windows](/assets/images/arp-spoofing/BASE_A_WINDOWS_NSLOOKUP.png)
-
-Esse estado foi usado como referência para comparar as evidências coletadas após a alteração das tabelas ARP.
 
 ### Execução controlada do ARP spoofing
 
@@ -130,7 +129,7 @@ Windows: IP do servidor → MAC da Kali
 Ubuntu:  IP da vítima   → MAC da Kali
 ```
 
-As duas associações mostraram que os endpoints estavam enviando para a Kali quadros que normalmente seriam entregues diretamente um ao outro.
+As duas associações mostraram que o tráfego em camada 2 estava sendo encaminhado para a Kali, em vez de seguir diretamente entre os dois endpoints.
 
 ### Validação da interceptação
 
