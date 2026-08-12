@@ -6,10 +6,8 @@ lang: pt-BR
 translation_key: mini-soc-wazuh-hardening
 author_profile: true
 author: julia_pt
-
 sidebar:
   nav: "sidebar_pt"
-
 toc: true
 toc_sticky: true
 categories: [Laboratórios, SOC]
@@ -21,84 +19,52 @@ header:
   image: /assets/images/DOOR-AJAR.jpg
   overlay_filter: 0.3
   overlay_image: /assets/images/DOOR-AJAR.jpg
-  image_description: "Um fluxo completo de SOC, desde a geração do sinal até a detecção, triagem, contenção e validação."
+  image_description: "Fluxo de detecção, análise e contenção de atividades web em um laboratório com Wazuh."
   image_height: 300px
 ---
 
-### Resumo executivo
+### Resumo do projeto
 
----
+Montei um laboratório em **Proxmox** com **Wazuh, pfSense, Nginx/Flask e uma Jumpbox** para gerar e analisar tráfego web controlado.
 
-Construí um miniambiente SOC em **Proxmox** com Wazuh, pfSense, uma aplicação Flask atrás do Nginx e uma Jumpbox utilizada para gerar tráfego controlado.
-
-O laboratório analisou três tipos de atividade:
+Foram testados três cenários:
 
 - falhas repetidas de autenticação;
 - reconhecimento de endpoints web;
-- requisições com padrões semelhantes a SQL injection.
+- requisições com padrão semelhante a SQL injection.
 
-No cenário de SQL injection, utilizei uma regra nativa do Wazuh e criei a regra local `100200` para aumentar a prioridade do alerta.
-
-A contenção foi aplicada diretamente na UbuntuApp com UFW, bloqueando conexões `TCP/80` originadas pela Jumpbox e preservando o acesso SSH para gerenciamento.
-
-O fluxo demonstrado foi:
-
-> **geração do sinal → detecção → triagem → contenção → validação**
+Também criei uma regra local no Wazuh para priorizar o sinal de SQL injection e validei uma contenção seletiva com **UFW**.
 
 ### Arquitetura do laboratório
 
----
+| Componente    | Função                                            |
+| ------------- | ------------------------------------------------- |
+| **Wazuh**     | Manager, indexer e dashboard                      |
+| **UbuntuApp** | Nginx, aplicação Flask e agente do Wazuh          |
+| **pfSense**   | Gateway e firewall                                |
+| **Jumpbox**   | Host controlado usado para gerar tráfego de teste |
 
-O ambiente foi composto por quatro máquinas virtuais:
+A Jumpbox (`192.168.20.10`) e a UbuntuApp (`192.168.20.50`) estavam na mesma VLAN, portanto o tráfego HTTP entre elas não precisava atravessar o pfSense.
 
-| Componente    | Função                                                |
-| ------------- | ----------------------------------------------------- |
-| **Wazuh**     | Manager, indexer e dashboard em instalação all-in-one |
-| **UbuntuApp** | Nginx, aplicação Flask e agente do Wazuh              |
-| **pfSense**   | Gateway, políticas de firewall e fonte de syslog      |
-| **Jumpbox**   | Bastion e origem controlada do tráfego de teste       |
-
-![Layout do laboratório no Proxmox](/assets/images/proj-1/PROXMOX-lab-layout.png)
-
-**Topologia relevante**
-
-O tráfego analisado foi gerado dentro da VLAN20:
-
-A Jumpbox foi usada como origem das requisições, enquanto a UbuntuApp atuou como servidor web alvo.
-
-```text
-Jumpbox
-192.168.20.10
-      ↓
-Tráfego HTTP dentro da VLAN20
-      ↓
-UbuntuApp
-192.168.20.50
-```
-
-> **Observação de SOC:** como a Jumpbox e a UbuntuApp estavam na mesma VLAN, o tráfego lateral podia ocorrer sem atravessar o pfSense. Por isso, a telemetria do endpoint e da aplicação foi essencial para a análise e a contenção.
-
-A aplicação Flask gerava logs JSON com os principais campos das requisições HTTP, posteriormente ingeridos e pesquisados no Wazuh.
+A aplicação Flask hospedada na UbuntuApp gerava logs JSON posteriormente ingeridos e pesquisados no Wazuh.
 
 ### Falhas repetidas de autenticação
 
----
-
-Gerei, a partir da Jumpbox, aproximadamente 20 tentativas de login malsucedidas contra o endpoint `/login`.
+Gerei aproximadamente 20 tentativas de login malsucedidas a partir da Jumpbox (`192.168.20.10`) contra o endpoint `/login` da aplicação Flask hospedada na UbuntuApp.
 
 ![Tentativas de login malsucedidas](/assets/images/proj-1/LOGIN-ATTEMPTS.png)
 
-No Wazuh, a consulta retornou 20 eventos `POST /login` com status `401`, todos originados por `192.168.20.10`.
+No Wazuh, a consulta retornou 20 eventos `POST /login` com status `401`, todos originados pela Jumpbox (`192.168.20.10`).
 
 ![Eventos de autenticação filtrados no Wazuh Discover](/assets/images/proj-1/WAZUH_COUNT_UP.png)
 
-O sinal relevante não foi o status `401` isolado, mas a repetição das falhas pela mesma origem em uma janela curta. Em produção, a detecção deveria usar um limiar por `srcip`.
+O sinal relevante não foi o status `401` isolado, mas a repetição das falhas pela mesma origem em uma janela curta.
+
+Como melhoria da detecção, esse comportamento poderia ser tratado com um limiar temporal agrupado por `srcip`.
 
 ### Reconhecimento de recursos web
 
----
-
-Também gerei requisições para diferentes endpoints sensíveis, simulando uma atividade de reconhecimento web.
+Também gerei, a partir da Jumpbox (`192.168.20.10`), requisições para diferentes endpoints da aplicação Flask, simulando uma sequência de reconhecimento web.
 
 ![Rajada de requisições para endpoints sensíveis](/assets/images/proj-1/QUICK BURST.png)
 
@@ -116,22 +82,23 @@ and (
   or data.path:"/phpmyadmin"
   or data.path:"/.env"
   or data.path:"/server-status"
+  or data.path:"/robots.txt"
 )
 ```
 
-![Eventos de reconhecimento filtrados no Wazuh Discover](/assets/images/proj-1/wazuh_discover_hits.png)
+![Eventos de reconhecimento filtrados no Wazuh Discover](/assets/images/proj-1/wazuh_discover_hits_2.png)
 
 <p style="font-size: 0.85em; font-style: italic; text-align: center;">
-A consulta confirmou que uma única origem acessou diferentes endpoints sensíveis em sequência.
+A consulta no Wazuh retornou sete eventos no intervalo analisado, todos originados pela Jumpbox (<code>192.168.20.10</code>) e associados aos endpoints testados na aplicação Flask.
 </p>
 
-Embora as respostas tenham sido 404, o padrão combinado é mais relevante do que cada evento isoladamente. Em produção, a detecção deveria considerar a quantidade de endpoints distintos, a taxa de requisições e scanners autorizados.
+Embora as respostas tenham sido `404`, a sequência de requisições da mesma origem contra diferentes endpoints sensíveis tornou o comportamento mais relevante do que cada evento isolado.
+
+Uma detecção mais robusta poderia considerar a quantidade de endpoints distintos, a taxa de requisições e origens previamente autorizadas para testes.
 
 ### Detecção de padrão semelhante a SQL injection
 
----
-
-Enviei requisições de teste ao endpoint `/search` contendo padrões codificados para URL, como:
+A partir da Jumpbox, enviei requisições de teste ao endpoint `/search` da aplicação Flask contendo padrões semelhantes a SQL injection, como:
 
 ```text
 ' OR 1=1 --
@@ -141,7 +108,7 @@ O objetivo foi gerar telemetria detectável no Wazuh, sem explorar a aplicação
 
 ![Requisições de teste enviadas ao endpoint search](/assets/images/proj-1/payloads.png)
 
-Para validar a ingestão, filtrei no Wazuh uma das strings enviadas:
+Para validar a ingestão, filtrei no Wazuh uma das strings enviadas.
 
 **Consulta DQL**
 
@@ -156,12 +123,12 @@ and data.query_string:"q=%27%20OR%201%3D1%20--"
 ![Sinal semelhante a SQL injection no Wazuh](/assets/images/proj-1/wazuh-SQLi.png)
 
 <p style="font-size: 0.85em; font-style: italic; text-align: center;">
-A consulta retornou três eventos relacionados ao mesmo valor de `query_string`, pois a mesma requisição foi enviada mais de uma vez durante a validação.
+A consulta retornou três eventos relacionados ao mesmo valor de <code>query_string</code>, todos originados pela Jumpbox durante a validação.
 </p>
 
-### Regra personalizada de priorização
+A consulta confirmou que o padrão enviado pela Jumpbox foi registrado na telemetria da aplicação e pôde ser identificado no Wazuh, fornecendo a evidência necessária para a etapa seguinte de priorização do alerta.
 
----
+### Regra personalizada de priorização
 
 O Wazuh possui uma regra nativa para padrões web relacionados a SQL injection:
 
@@ -170,7 +137,7 @@ rule.id: 31164
 level: 6
 ```
 
-Para tornar o sinal mais visível durante a operação do laboratório, criei uma regra local que gera um novo alerta a partir do disparo da regra nativa.
+Para tornar o sinal mais visível durante o laboratório, criei uma regra local que gera um novo alerta a partir do disparo da regra nativa:
 
 ```text
 Regra local: 100200
@@ -181,39 +148,21 @@ MITRE ATT&CK: T1190 — Exploit Public-Facing Application
 
 ![Regra 100200 no local_rules.xml](/assets/images/proj-1/RULE.ID-100200-local_rules.png)
 
-A regra local `100200` gerou alertas de nível `12`, tornando o sinal mais visível para triagem e priorização no Wazuh.
+A regra `100200` gerou alertas de nível `12`, facilitando sua priorização no Wazuh.
 
 ![Alerta da regra local 100200 com nível 12 no Wazuh Discover](/assets/images/proj-1/ruleID100200-BACKUP.png)
 
-**Limitação da regra**
+**Limitação da implementação**
 
-A versão demonstrada gerava um novo alerta para cada ocorrência da regra 31164.
+A regra local demonstrada gerava um novo alerta para cada ocorrência da regra `31164`.
 
-Em produção, seria mais adequado aplicar um limiar temporal, agrupado por data.srcip, e considerar scanners autorizados, comportamento normal da aplicação e criticidade do ativo.
+Uma versão mais robusta poderia aplicar correlação temporal por `data.srcip` e considerar frequência, comportamento esperado da aplicação e contexto da origem.
 
-### Como seria a triagem em produção
-
----
-
-Em produção, a triagem começaria pelo alerta da regra `100200`:
-
-```text
-agent.name:"ubuntu-app" and rule.id:"100200"
-```
-
-O analista validaria a origem, o endpoint, a query_string, o full_log e a frequência dos eventos.
-
-Em seguida, correlacionaria a atividade com outros sinais da mesma origem, como falhas de autenticação, reconhecimento web e conexões de rede, além de verificar se havia autorização para testes.
-
-O objetivo seria determinar se o alerta representa atividade legítima, uma tentativa isolada ou parte de uma sequência ofensiva mais ampla.
-
-### Recursos de apoio à triagem
-
----
+### Recursos de apoio à análise
 
 Criei um dashboard no Wazuh para visualizar origem, horário e URLs associadas aos alertas.
 
-![Dashboard de ataques web](/assets/images/proj-1/E4-SOC-WEB-ATTACKS.png)
+![Dashboard de atividades web](/assets/images/proj-1/E4-SOC-WEB-ATTACKS.png)
 
 Também desenvolvi um script Python para resumir IPs, endpoints, códigos de status e query strings.
 
@@ -227,43 +176,37 @@ Exemplo de uso:
 python3 summarize_flask_logs.py /var/log/flaskapp/app.log
 ```
 
-![Resumo de triagem em Python](/assets/images/proj-1/python-triage-summary.png)
+![Resumo dos logs em Python](/assets/images/proj-1/python-triage-summary.png)
 
-O script resume os registros da aplicação por:
+O script organiza os registros da aplicação por:
 
 - principais IPs de origem;
 - endpoints mais acessados;
 - códigos de status;
 - query strings observadas.
 
-Esses recursos apoiam a análise inicial, mas não substituem a validação dos eventos no Wazuh e nos logs da aplicação.
+Esses recursos ajudam a estruturar a análise inicial, mas as conclusões continuam dependendo da revisão dos eventos no Wazuh e dos logs da aplicação Flask.
 
 ### Contenção e validação
 
----
+Como a Jumpbox (`192.168.20.10`) e a UbuntuApp (`192.168.20.50`) estavam na mesma VLAN, apliquei a contenção diretamente na UbuntuApp com **UFW**.
 
-Como a Jumpbox e a UbuntuApp estavam na mesma VLAN, as requisições de teste eram enviadas diretamente entre as duas máquinas, sem atravessar o pfSense.
-
-Por isso, apliquei a contenção diretamente na UbuntuApp com UFW, bloqueando conexões `TCP/80` originadas por `192.168.20.10`.
-
-Mantive o acesso SSH liberado para o gerenciamento das máquinas virtuais.
+A regra bloqueou conexões `TCP/80` originadas pela Jumpbox (`192.168.20.10`) em direção à aplicação web na UbuntuApp, mantendo o acesso SSH disponível para gerenciamento.
 
 ![Regra de contenção no UFW](/assets/images/proj-1/ufw-status.png)
 
-Após aplicar a regra no UFW, validei a conectividade a partir da Jumpbox.
+Depois, validei a conectividade a partir da Jumpbox.
 
 ![Validação do bloqueio da porta 80 com Nmap e Netcat](/assets/images/proj-1/ufw-port-80-validation.png)
 
-O Nmap mostrou que a porta `22/tcp` permanecia aberta para SSH, enquanto a porta `80/tcp` aparecia como `filtered`. O teste adicional com Netcat também resultou em timeout na porta 80.
+O Nmap mostrou `22/tcp` aberta para SSH e `80/tcp` como `filtered`. O teste com Netcat também resultou em timeout na porta 80.
 
-Esses resultados confirmaram que o acesso de gerenciamento foi preservado e que as conexões HTTP originadas pela Jumpbox estavam sendo bloqueadas.
+Os resultados confirmaram que as conexões HTTP originadas pela Jumpbox estavam sendo bloqueadas sem remover o acesso de gerenciamento.
 
 ### Conclusão
 
----
+O laboratório integrou logs estruturados da aplicação Flask, detecção no Wazuh, priorização de alertas, apoio à análise com dashboard e Python e contenção seletiva no endpoint.
 
-O laboratório integrou telemetria estruturada, detecção no Wazuh, análise do alerta e contenção seletiva no endpoint.
+A validação mostrou que o bloqueio aplicado no UFW filtrou `TCP/80` para a origem de teste enquanto preservava o acesso SSH.
 
-A validação mostrou que a porta `80/tcp` foi filtrada para a Jumpbox, enquanto o acesso SSH permaneceu disponível para gerenciamento.
-
-Como próximos passos, a aplicação poderia incorporar consultas parametrizadas, validação de entrada, HTTPS, privilégio mínimo e correlação temporal dos alertas.
+Como melhorias futuras, as regras poderiam incorporar correlação temporal e contexto adicional da origem para reduzir ruído e tornar a priorização mais precisa.

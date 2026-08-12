@@ -23,7 +23,7 @@ tags:
     Resposta-a-Incidentes,
     MITRE-ATT&CK,
   ]
-excerpt: "Um caso em nuvem: detectei uma tentativa de SSRF em uma aplicação hospedada no EC2, investiguei a atividade relacionada no CloudTrail e reduzi o risco com IMDSv2, bloqueio de destinos internos e menor privilégio."
+excerpt: Um caso em nuvem envolvendo uma tentativa de SSRF contra uma aplicação no EC2, investigação no CloudTrail e mitigação com IMDSv2, bloqueio de destinos internos e princípio do menor privilégio.
 permalink: /pt/laboratorios/incidente-nuvem-ssrf-imds-cloudtrail-hardening/
 header:
   teaser: /assets/images/DOOR-AJAR.jpg
