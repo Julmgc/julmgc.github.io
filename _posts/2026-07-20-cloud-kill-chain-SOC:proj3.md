@@ -43,7 +43,7 @@ This project demonstrates a cloud security investigation workflow using applicat
 - reviewed identity activity and API calls in **CloudTrail**;
 - reduced the risk by requiring **IMDSv2**, blocking internal destinations in the application, and applying **least privilege** to the IAM role.
 
-![Proj-3 - Arquitetura - investigação de SSRF em nuvem](/assets/images/proj-3/SSRF-PROJ-PORT.png)
+![Proj-3 - Arquitetura - investigação de SSRF em nuvem](/assets/images/proj-3/ARCH-ssrf-cloudtrail.png)
 
 ### Controlled setup: EC2 application and overly permissive IAM role
 
