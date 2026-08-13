@@ -20,7 +20,7 @@ tags:
     Incident-Response,
     MITRE-ATT&CK,
   ]
-excerpt: "A Windows endpoint triage lab using PowerShell, Sysmon, and Wazuh to compare similar events and examine one selected execution in detail."
+excerpt: "Hands-on endpoint triage lab using Sysmon and Wazuh to compare PowerShell executions, inspect process-creation telemetry, and distinguish suspicious-looking activity from legitimate administrative behavior."
 permalink: /labs/endpoint-alert-triage-powershell-wazuh/
 header:
   teaser: /assets/images/DOOR-AJAR.jpg
