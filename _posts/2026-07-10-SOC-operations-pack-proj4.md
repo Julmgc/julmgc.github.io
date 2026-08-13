@@ -31,30 +31,15 @@ header:
   image_height: 300px
 ---
 
-### Overview
+---
 
-In this lab, I generated four safe PowerShell executions on a Windows 10 endpoint and used **Sysmon + Wazuh** to review the resulting events.
+### Project summary
 
-The goal was to compare similar executions, select one for closer review, and examine the process creation evidence recorded by Sysmon.
-
-The workflow was:
-
-> **generate the signal → review it in Wazuh → select the event → examine the evidence → document the conclusion**
-
-### Lab architecture
-
-I used a small setup for Windows endpoint monitoring:
-
-- **Wazuh** — manager, indexer, and dashboard;
-- **Windows 10** — monitored endpoint;
-- **Sysmon** — process creation telemetry;
-- **Wazuh Agent** — forwards endpoint events to Wazuh.
-
-The Sysmon events provided fields such as command line, user, host, parent process, and timestamp for analysis.
+In this lab, I generated four safe PowerShell executions on a **Windows 10** endpoint and used **Sysmon + Wazuh** to compare the events and review process creation telemetry.
 
 ### PowerShell executions
 
-To practice triage, I generated four safe PowerShell commands within a short time window:
+I generated four safe PowerShell commands within a short time window:
 
 ```powershell
 powershell.exe -Command "Get-Process | Select-Object -First 5"
@@ -63,46 +48,40 @@ powershell.exe -Command "Get-Service | Select-Object -First 5"
 powershell.exe -Command "whoami; hostname; Get-Date"
 ```
 
-All four commands were harmless. The goal was to generate similar endpoint events and then compare their command lines.
-
 ### Events in Wazuh
 
-The executions appeared in Wazuh under the same PowerShell-related detection family.
+All four executions appeared in Wazuh under the same PowerShell-related detection family.
 
-![PowerShell-related events in Wazuh](/assets/images/proj-4/WIN-ps-initial-alert.png)
+![PowerShell events in Wazuh](/assets/images/proj-4/WIN-ps-initial-alert.png)
 
 I compared the events using the command-line data recorded by Sysmon.
 
-### Reviewing the selected execution
+### Event selected for analysis
 
-Of the four commands, I selected the following one for closer review:
+I selected the following event for closer review:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Test-NetConnection 192.168.20.55 -Port 1514"
 ```
 
-The combination of `ExecutionPolicy Bypass` with a connectivity test to a specific host and port made this event stand out from the others.
+The execution stood out because it combined `ExecutionPolicy Bypass` with a connection attempt to `192.168.20.55:1514`, while the other commands were simple administrative queries.
 
-The command can also be used for legitimate administrative tasks. For that reason, the assessment should not rely on the command line alone: it is important to determine whether the user and host normally perform this type of activity and whether the behavior is consistent with the endpoint's role.
-
-The other commands (`Get-Process`, `Get-Service`, and `whoami; hostname; Get-Date`) were simple administrative checks involving processes, services, and host identity.
+`ExecutionPolicy Bypass` increased the relevance of the event, but I did not treat it as evidence of malicious activity on its own. The review considered the command line, user, host, timestamp, and connection destination before placing the execution in context.
 
 ### Sysmon evidence
 
-After selecting the execution, I opened the Sysmon process creation event in Wazuh.
+In Wazuh, I reviewed the process creation event recorded by Sysmon.
 
-![Sysmon process creation event](/assets/images/proj-4/WIN-ps-raw-event.png)
+![Sysmon process creation evidence](/assets/images/proj-4/WIN-ps-raw-event.png)
 
-The event confirmed the full command line, the use of `-NoProfile` and `-ExecutionPolicy Bypass`, as well as the associated host, user, and timestamp.
+The event recorded the full command line, including `-NoProfile` and `-ExecutionPolicy Bypass`, along with the associated user, host, and timestamp.
 
-These fields made it possible to verify exactly what command was executed and in what context.
+These fields made it possible to confirm which command had been executed and the context in which it occurred.
 
 ### Conclusion
 
-The selected event stood out because it combined `ExecutionPolicy Bypass` with a connectivity test to a specific host and port.
+Comparing the four events helped identify an execution that warranted additional review because it combined `ExecutionPolicy Bypass` with a connection to `192.168.20.55:1514`.
 
-The Sysmon evidence confirmed the command line, user, host, and execution time, without indicating additional impact in the lab scenario.
+The Sysmon evidence validated the command and its context without indicating additional activity in the analyzed scenario.
 
-The lab demonstrated a simple endpoint triage workflow:
-
-> **generate the event → identify the signal → review the evidence → add context → decide**
+> **generate the signal → compare events → review the evidence → add context → decide**

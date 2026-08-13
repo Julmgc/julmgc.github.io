@@ -33,13 +33,15 @@ header:
   image_height: 300px
 ---
 
+---
+
 ### Resumo do projeto
 
-Neste laboratório, gerei quatro execuções seguras de PowerShell em um endpoint **Windows 10** e usei **Sysmon + Wazuh** para comparar os eventos e analisar a telemetria de criação de processos.
+Neste laboratório, gerei quatro execuções seguras de PowerShell em um endpoint **Windows 10** e usei **Sysmon + Wazuh** para comparar os eventos e revisar a telemetria de criação de processos.
 
 ### Execuções de PowerShell
 
-Para praticar a triagem, gerei quatro comandos seguros de PowerShell em um intervalo curto:
+Gerei quatro comandos seguros de PowerShell em um intervalo curto:
 
 ```powershell
 powershell.exe -Command "Get-Process | Select-Object -First 5"
@@ -50,42 +52,38 @@ powershell.exe -Command "whoami; hostname; Get-Date"
 
 ### Eventos no Wazuh
 
-As execuções apareceram no Wazuh sob a mesma família de detecção relacionada ao PowerShell.
+As quatro execuções apareceram no Wazuh sob a mesma família de detecção relacionada ao PowerShell.
 
-![Eventos relacionados ao PowerShell no Wazuh](/assets/images/proj-4/WIN-ps-initial-alert-2.png)
+![Eventos de PowerShell no Wazuh](/assets/images/proj-4/WIN-ps-initial-alert.png)
 
-Os eventos foram comparados a partir da linha de comando registrada pelo Sysmon.
+A comparação foi feita a partir das linhas de comando registradas pelo Sysmon.
 
-### Revisão da execução selecionada
+### Evento selecionado para análise
 
-Entre os quatro comandos, selecionei para análise mais detalhada:
+Selecionei este evento para uma revisão mais detalhada:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Test-NetConnection 192.168.20.55 -Port 1514"
 ```
 
-A combinação de `ExecutionPolicy Bypass` com um teste de conectividade para um host e uma porta específicos diferenciava esse evento dos demais.
+A execução se destacou por combinar `ExecutionPolicy Bypass` com uma tentativa de conexão para `192.168.20.55:1514`, enquanto os demais comandos eram consultas administrativas simples.
 
-Embora ExecutionPolicy Bypass possa aparecer em atividade maliciosa, seu uso isoladamente não determina que a execução seja maliciosa. O comando também é utilizado em administração e automação legítimas. A triagem, portanto, deve considerar o processo pai, usuário, host, horário, destino da conexão e o comportamento normalmente observado naquele endpoint.
-
-Os outros comandos (`Get-Process`, `Get-Service` e `whoami; hostname; Get-Date`) eram verificações administrativas simples de processos, serviços e identidade do host.
+`ExecutionPolicy Bypass` aumentou o interesse do evento, mas não foi tratado isoladamente como evidência de atividade maliciosa. A revisão considerou a linha de comando, usuário, host, horário e destino da conexão antes de contextualizar a execução.
 
 ### Evidência do Sysmon
 
-Após selecionar a execução, abri no Wazuh o evento de criação de processo registrado pelo Sysmon.
+No Wazuh, revisei o evento de criação de processo registrado pelo Sysmon.
 
-![Evento de criação de processo registrado pelo Sysmon](/assets/images/proj-4/WIN-ps-raw-event.png)
+![Evidência de criação de processo registrada pelo Sysmon](/assets/images/proj-4/WIN-ps-raw-event.png)
 
-O evento confirmou a linha de comando completa, o uso de `-NoProfile` e `-ExecutionPolicy Bypass`, além do host, usuário e timestamp associados.
+O evento registrou a linha de comando completa, incluindo `-NoProfile` e `-ExecutionPolicy Bypass`, além do usuário, host e timestamp associados.
 
-Esses dados permitiram validar exatamente qual comando havia sido executado e em qual contexto.
+Esses dados permitiram confirmar qual comando havia sido executado e em qual contexto.
 
 ### Conclusão
 
-O evento selecionado se destacou pela combinação de `ExecutionPolicy Bypass` com um teste de conectividade para um host e uma porta específicos.
+A comparação dos quatro eventos permitiu identificar uma execução que merecia revisão adicional pelo uso de `ExecutionPolicy Bypass` combinado com uma conexão para `192.168.20.55:1514`.
 
-A evidência do Sysmon permitiu validar a linha de comando, o usuário, o host e o momento da execução, sem indicar impacto adicional no cenário analisado.
+A evidência do Sysmon permitiu validar o comando e seu contexto sem indicar atividade adicional no cenário analisado.
 
-O laboratório demonstrou um fluxo simples de triagem de endpoint:
-
-> **gerar o sinal → identificar o evento → revisar a evidência → contextualizar → decidir**
+> **gerar o sinal → comparar eventos → revisar a evidência → contextualizar → decidir**
