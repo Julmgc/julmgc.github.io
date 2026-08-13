@@ -40,14 +40,14 @@ Este projeto demonstra um fluxo de investigação de segurança em nuvem usando 
 
 - implantei uma aplicação Flask em uma instância **EC2** com um endpoint capaz de buscar URLs;
 - gerei uma requisição no estilo **SSRF** direcionada ao serviço de metadados da instância;
-- investiguei atividades de identidade e chamadas de API no **CloudTrail**;
+- revisei atividades de identidade e chamadas de API no **CloudTrail**;
 - reduzi o risco exigindo **IMDSv2**, bloqueando destinos internos na aplicação e aplicando **menor privilégio** à função IAM.
 
 ![Proj-3 - Arquitetura - investigação de SSRF em nuvem](/assets/images/proj-3/SSRF-PROJ-PORT.png)
 
 ### Configuração controlada: aplicação no EC2 e função IAM excessivamente permissiva
 
-Executei um pequeno serviço Flask em uma instância EC2 com um endpoint capaz de buscar URLs. Para fins de laboratório, a instância utilizava uma função IAM com permissões mais amplas do que o necessário, demonstrando como o acesso ao serviço de metadados poderia ampliar o impacto de uma falha de SSRF.
+Executei um pequeno serviço Flask em uma instância EC2 com um endpoint capaz de buscar URLs. Para fins de laboratório, a instância utilizava uma função IAM com permissões mais amplas do que o necessário, demonstrando como o acesso ao serviço de metadados pode ampliar o impacto de uma falha de SSRF.
 
 Este foi um cenário controlado, utilizando apenas recursos descartáveis e dados não sensíveis.
 
@@ -77,11 +77,11 @@ Esses eventos permitiram observar a atividade de identidade e enumeração assoc
 
 ![Proj-3 - Sequência no CloudTrail](/assets/images/proj-3/CT-killchain-seq.png)
 
-> Caso credenciais temporárias tivessem sido expostas, uma chamada como `sts:GetCallerIdentity` seria relevante para confirmar a conta AWS e o contexto da função utilizada.
+> Caso as credenciais temporárias tivessem sido expostas, uma chamada como `sts:GetCallerIdentity` seria relevante para confirmar a conta AWS e o contexto da função utilizada.
 
 ### Remediação: reduzindo o caminho de risco
 
-Apliquei três medidas concretas de hardening para reduzir o caminho de risco entre SSRF e exposição de recursos em nuvem:
+Apliquei três medidas de hardening no laboratório para reduzir o caminho de risco entre SSRF e exposição de recursos em nuvem:
 
 - exigi **IMDSv2** na instância EC2;
 - bloqueei, no endpoint /fetch, requisições destinadas ao serviço de metadados e a endereços locais;
@@ -95,7 +95,7 @@ Após a alteração, uma nova tentativa de acesso ao serviço de metadados retor
 
 ![Proj-3 - Controle defensivo contra SSRF](/assets/images/proj-3/APP-egress-or-allowlist.png)
 
-> Em produção, esse controle precisaria ser ampliado para validar os endereços resultantes da resolução DNS e bloquear outras faixas privadas, loopback, link-local e endereços locais IPv6.
+> Como melhoria, esse controle poderia ser ampliado para validar os endereços resultantes da resolução DNS e bloquear outras faixas privadas, loopback, link-local e endereços locais IPv6.
 
 ### Conclusão
 
@@ -103,6 +103,6 @@ Após a alteração, uma nova tentativa de acesso ao serviço de metadados retor
 
 Após o hardening, a mesma requisição passou a retornar `403 Forbidden`, enquanto o sinal continuou visível na telemetria da aplicação. O IMDSv2 também permaneceu obrigatório e a função IAM foi restringida.
 
-O laboratório demonstrou um fluxo completo de investigação em nuvem:
+O laboratório reuniu um fluxo de investigação em nuvem:
 
 > **detectar → investigar no CloudTrail → remediar → repetir o teste → validar**
