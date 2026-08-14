@@ -1,6 +1,6 @@
 ---
 title: "Exposição pública no S3 com Access Analyzer e CloudTrail"
-date: 2026-03-02
+date: 2026-07-15
 layout: single
 lang: pt-BR
 translation_key: cloud-soc-s3-exposure-access-analyzer-cloudtrail

@@ -1,6 +1,6 @@
 ---
 title: "Triagem de alertas SOC assistida por LLM com Splunk, Sysmon, Python e OpenAI"
-date: 2026-07-06
+date: 2026-07-23
 layout: single
 lang: pt-BR
 translation_key: llm-assisted-soc-triage
@@ -21,11 +21,9 @@ tags:
     OpenAI,
     LLM,
     MITRE-ATT&CK,
-    Triagem-de-Alertas,
-    Engenharia-de-Detecção,
-    Resposta-a-Incidentes,
+    Análise-de-Alertas,
   ]
-excerpt: "Um laboratório de triagem SOC com Splunk, Sysmon, Python e OpenAI para estruturar a análise de alertas e comparar a saída do LLM com uma avaliação manual."
+excerpt: "Um laboratório de triagem SOC com Splunk, Sysmon, Python e OpenAI para estruturar a análise de alertas e comparar a saída do LLM com uma análise manual."
 permalink: /pt/laboratorios/triagem-soc-assistida-por-llm/
 header:
   teaser: /assets/images/DOOR-AJAR.jpg
@@ -40,7 +38,7 @@ header:
 
 Este projeto testa o uso de um LLM como apoio à triagem inicial de alertas.
 
-O laboratório usa **Windows Event Logs e Sysmon**, enviados ao **Splunk**, com processamento em **Python** e integração com a **API da OpenAI** para gerar avaliações estruturadas que podem ser comparadas com uma análise manual.
+O laboratório usa **Windows Event Logs e Sysmon**, enviados ao **Splunk**, com processamento em **Python** e integração com a **API da OpenAI** para gerar avaliações estruturadas e compará-las com uma análise manual baseada nas mesmas evidências.
 
 **Repositório no GitHub:** [AI-ASSISTED-SOC-TRIAGE](https://github.com/Julmgc/AI-ASSISTED-SOC-TRIAGE){: target="\_blank" rel="noopener noreferrer" }
 
@@ -55,15 +53,15 @@ O laboratório usa **Windows Event Logs e Sysmon**, enviados ao **Splunk**, com 
 
 ### O que foi desenvolvido
 
-Criei oito cenários de alerta envolvendo PowerShell, falhas de autenticação, atividade web, criação de contas, conexões de saída e falsos positivos.
+Criei três cenários de alerta envolvendo criação de conta local, execução de PowerShell e um falso positivo controlado.
 
 Cada alerta foi estruturado em JSON e processado por um script em Python, que enviou as evidências disponíveis ao LLM usando um prompt de triagem com restrições definidas.
 
-Este post apresenta um caso em mais detalhes e dois exemplos adicionais. O conjunto completo de alertas, as saídas da IA e as avaliações manuais estão disponíveis no repositório.
+As avaliações geradas pelo modelo foram então comparadas com uma análise manual baseada nas mesmas evidências.
 
-### Alerta 05: criação de conta local
+### Alerta 01: criação de conta local
 
-O exemplo principal utiliza o **Alerta 05 — criação de nova conta local**.
+O caso principal utiliza o **Alerta 01 — criação de nova conta local**.
 
 A atividade gerou o Windows Security Event ID `4720`.
 
@@ -75,7 +73,7 @@ index=* source="WinEventLog:Security" EventCode=4720
 | sort -_time
 ```
 
-![Evento de criação de uma nova conta local analisado no Splunk](/assets/images/proj-6/splunk-windows-event-4720.png)
+![New local user created event reviewed in Splunk](/assets/images/proj-6/splunk-windows-event-4720.png)
 
 O evento confirmou que a conta `lab_backup` foi criada no host `DESKTOP-HRMT55O` pelo usuário `jules`.
 
@@ -88,9 +86,9 @@ index=* source="WinEventLog:Microsoft-Windows-Sysmon/Operational"
 | table _time host User Image CommandLine ParentImage
 ```
 
-![Sysmon Event ID 1 mostrando o processo responsável pela criação da conta](/assets/images/proj-6/Sysmon-Event-ID1,-process-creation.png)
+![Sysmon-Event-ID1](/assets/images/proj-6/Sysmon-Event-ID1,-process-creation.png)
 
-O evento do Sysmon acrescentou a linha de comando e as informações sobre o processo pai associadas à criação da conta.
+O evento do Sysmon acrescentou a linha de comando e informações sobre o processo pai associadas à criação da conta.
 
 O LLM produziu:
 
@@ -124,11 +122,11 @@ Nível de risco: médio
 
 As evidências confirmaram que a conta havia sido criada, mas não permitiam determinar se a ação era autorizada ou maliciosa.
 
-O LLM também mapeou a atividade para `T1136.001 — Create Account: Local Account` sem fazer conclusões não sustentadas sobre comprometimento ou persistência.
+O LLM também mapeou a atividade para `T1136.001 — Create Account: Local Account` sem concluir, sem evidência adicional, que houve comprometimento ou persistência.
 
 ### Casos adicionais
 
-**Alerta 01 — PowerShell suspeito**
+**Alerta 02 — PowerShell suspeito**
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Test-NetConnection 192.168.20.45 -Port 9997"
@@ -136,11 +134,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Test-NetConnection 1
 
 As duas avaliações classificaram o evento como `needs_review`.
 
-O LLM atribuiu nível de risco `low`, enquanto minha avaliação manual atribuiu `medium`, dando mais peso à combinação de `ExecutionPolicy Bypass` com um comando voltado à conectividade de rede.
+O LLM atribuiu risco `low`, enquanto minha avaliação manual atribuiu `medium`, dando maior peso à combinação de `ExecutionPolicy Bypass` com atividade de conectividade de rede.
+
+O comando, isoladamente, não foi tratado como evidência de comprometimento.
 
 ---
 
-**Alerta 08 — falso positivo com alto nível de ruído**
+**Alerta 03 — falso positivo com alto nível de ruído**
 
 ```cmd
 cmd.exe /c whoami
@@ -148,32 +148,31 @@ cmd.exe /c whoami
 
 O comando fazia parte de um teste documentado de visibilidade de execução de comandos no Splunk.
 
-Tanto o LLM quanto a avaliação manual classificaram o evento como `benign`, com risco `low`. O modelo não tratou o uso de `cmd.exe` ou `whoami`, isoladamente, como evidência de atividade maliciosa.
+Tanto o LLM quanto a avaliação manual classificaram o evento como `benign`, com risco `low`.
 
-### Resultado geral
+O modelo não tratou o uso de `cmd.exe` ou `whoami`, isoladamente, como evidência de atividade maliciosa.
 
-No conjunto completo de oito alertas, as avaliações da IA e as avaliações manuais ficaram alinhadas em sete casos.
+### Comparação dos resultados
 
-Em um caso houve alinhamento parcial, porque a classificação foi a mesma, mas o nível de risco atribuído foi diferente.
+| Alerta                    | IA                             | Avaliação manual               | Resultado             |
+| ------------------------- | ------------------------------ | ------------------------------ | --------------------- |
+| **01 — Nova conta local** | `needs_review`, risco `medium` | `needs_review`, risco `medium` | Alinhado              |
+| **02 — PowerShell**       | `needs_review`, risco `low`    | `needs_review`, risco `medium` | Parcialmente alinhado |
+| **03 — Falso positivo**   | `benign`, risco `low`          | `benign`, risco `low`          | Alinhado              |
 
-```text
-Total de alertas testados: 8
-Alinhados: 7
-Parcialmente alinhados: 1
-```
+A principal divergência ocorreu no Alerta 02: a classificação foi a mesma, mas minha avaliação atribuiu maior peso à combinação de `ExecutionPolicy Bypass` com atividade de conectividade de rede.
 
 ### Principais conclusões
 
 O LLM foi útil para:
 
-- resumir evidências e extrair observáveis relevantes;
+- resumir evidências e destacar observáveis relevantes;
 - identificar contexto ausente por meio de perguntas de triagem;
 - sugerir mapeamentos MITRE ATT&CK com níveis de confiança;
-- estruturar próximos passos de investigação;
-- evitar conclusões que não eram sustentadas pelas evidências disponíveis.
+- manter as conclusões limitadas às evidências disponíveis.
 
-A principal limitação foi a dependência do contexto incluído em cada alerta. Informações sobre autorização, árvore de processos, resultado da execução e atividade relacionada eram frequentemente necessárias para chegar a uma conclusão mais forte.
+A principal limitação foi a dependência do contexto fornecido. Informações sobre autorização, relações entre processos, resultado da execução e atividade associada poderiam alterar significativamente a avaliação.
 
-O valor do LLM nesse fluxo, portanto, não está na tomada autônoma de decisão, mas no apoio estruturado à triagem com conclusões limitadas às evidências disponíveis.
+O valor do LLM neste laboratório esteve no apoio estruturado à análise, não na tomada autônoma de decisão.
 
 > **IA como apoio à análise, com conclusões limitadas às evidências disponíveis.**

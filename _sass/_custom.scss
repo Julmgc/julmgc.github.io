@@ -92,11 +92,6 @@
   text-justify: inter-word;
 }
 
-/* Better line breaks for long words */
-html {
-  hyphens: auto;
-} /* uses the page lang for hyphen rules */
-
 /* Don’t justify things that look bad justified */
 .page__content pre,
 .page__content code,
@@ -260,20 +255,6 @@ body.pt-home .page__content .btn {
   display: none !important;
 }
 
-.page__content p,
-.page__content li,
-.page__content blockquote {
-  text-align: left !important;
-
-  -webkit-hyphens: none !important;
-  -moz-hyphens: none !important;
-  -ms-hyphens: none !important;
-  hyphens: none !important;
-
-  word-break: normal !important;
-  overflow-wrap: normal !important;
-}
-
 .page__hero--overlay .page__lead {
   text-align: justify !important;
 
@@ -322,4 +303,43 @@ body.pt-home .page__content .btn {
 .highlight .s1,
 .highlight .s2 {
   color: #003366 !important;
+}
+
+.page__content,
+.page__content p,
+.page__content li,
+.page__content blockquote,
+.page__content h1,
+.page__content h2,
+.page__content h3,
+.page__content h4,
+.page__content h5,
+.page__content h6,
+.page__content figcaption,
+.archive__item-excerpt {
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  hyphens: none !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+.page__content p,
+.page__content li,
+.page__content blockquote {
+  text-align: left !important;
+}
+
+.page__hero--overlay .page__lead {
+  text-align: justify !important;
+
+  -webkit-hyphens: none !important;
+  -moz-hyphens: none !important;
+  -ms-hyphens: none !important;
+  hyphens: none !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
 }
